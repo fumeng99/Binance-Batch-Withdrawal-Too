@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binance 批量提币工具</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #F0B90B;
+            --primary-glow: rgba(240, 185, 11, 0.4);
+            --bg-dark: #0B0E11;
+            --bg-card: rgba(30, 35, 41, 0.8);
+            --bg-card-hover: rgba(43, 49, 57, 0.9);
+            --bg-input: rgba(43, 49, 57, 0.6);
+            --text-primary: #EAECEF;
+            --text-secondary: #848E9C;
+            --success: #0ECB81;
+            --success-glow: rgba(14, 203, 129, 0.3);
+            --danger: #F6465D;
+            --danger-glow: rgba(246, 70, 93, 0.3);
+            --warning: #F0B90B;
+            --border: rgba(255, 255, 255, 0.08);
+            --gradient-gold: linear-gradient(135deg, #F0B90B 0%, #FFD700 50%, #FFA500 100%);
+            --gradient-dark: linear-gradient(180deg, #1A1D21 0%, #0B0E11 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--gradient-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at 20% 20%, rgba(240, 185, 11, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(14, 203, 129, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient-gold);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 32px var(--primary-glow);
+        }
+
+        .logo-icon svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: var(--gradient-gold);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .balance-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            padding: 16px 24px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .balance-card .icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--success), #00D68F);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .balance-card .info {
+            flex: 1;
+        }
+
+        .balance-card .label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .balance-card .value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        .balance-card .btn-refresh {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .balance-card .btn-refresh:hover {
+            background: var(--bg-card-hover);
+            transform: rotate(180deg);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 28px;
+            border: 1px solid var(--border);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .card-header .icon-box {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, rgba(240, 185, 11, 0.2), rgba(240, 185, 11, 0.05));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(240, 185, 11, 0.3);
+        }
+
+        .card-header .icon-box svg {
+            width: 22px;
+            height: 22px;
+            fill: var(--primary);
+        }
+
+        .card-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .alert {
+            background: linear-gradient(135deg, rgba(240, 185, 11, 0.15), rgba(240, 185, 11, 0.05));
+            border: 1px solid rgba(240, 185, 11, 0.3);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: var(--warning);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 18px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-glow);
+        }
+
+        .form-group textarea {
+            min-height: 140px;
+            resize: vertical;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .mode-selector {
+            display: flex;
+            background: var(--bg-input);
+            border-radius: 12px;
+            padding: 4px;
+            gap: 4px;
+            margin-bottom: 18px;
+        }
+
+        .mode-selector label {
+            flex: 1;
+            text-align: center;
+            padding: 12px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.3s;
+            margin: 0;
+        }
+
+        .mode-selector input {
+            display: none;
+        }
+
+        .mode-selector input:checked+label {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--gradient-gold);
+            color: #000;
+            box-shadow: 0 4px 20px var(--primary-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px var(--primary-glow);
+        }
+
+        .btn-secondary {
+            background: var(--bg-input);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #FF6B7A);
+            color: #fff;
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .total-box {
+            background: linear-gradient(135deg, rgba(240, 185, 11, 0.1), rgba(240, 185, 11, 0.02));
+            border: 1px solid rgba(240, 185, 11, 0.2);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-top: 16px;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .total-box .label {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .total-box .value {
+            font-size: 20px;
+            font-weight: 700;
+            background: var(--gradient-gold);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--bg-input);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar .fill {
+            height: 100%;
+            background: var(--gradient-gold);
+            border-radius: 4px;
+            transition: width 0.5s;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .stat-card {
+            background: var(--bg-input);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-card .label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .stat-card.success .value {
+            color: var(--success);
+        }
+
+        .stat-card.error .value {
+            color: var(--danger);
+        }
+
+        .stat-card.pending .value {
+            color: var(--text-secondary);
+        }
+
+        .transfer-list {
+            max-height: 280px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .transfer-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            background: var(--bg-input);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .transfer-item .index {
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-right: 12px;
+        }
+
+        .transfer-item .address {
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+            flex: 1;
+        }
+
+        .transfer-item .amount {
+            font-weight: 600;
+            color: var(--primary);
+            margin: 0 16px;
+        }
+
+        .transfer-item .status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-pending .status-dot {
+            background: var(--text-secondary);
+        }
+
+        .status-success .status-dot {
+            background: var(--success);
+        }
+
+        .status-error .status-dot {
+            background: var(--danger);
+        }
+
+        .status-processing .status-dot {
+            background: var(--warning);
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-pending {
+            color: var(--text-secondary);
+        }
+
+        .status-success {
+            color: var(--success);
+        }
+
+        .status-error {
+            color: var(--danger);
+        }
+
+        .status-processing {
+            color: var(--warning);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .log-area {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            max-height: 180px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .log-line {
+            padding: 4px 0;
+            line-height: 1.5;
+        }
+
+        .log-line.info {
+            color: #58A6FF;
+        }
+
+        .log-line.success {
+            color: var(--success);
+        }
+
+        .log-line.error {
+            color: var(--danger);
+        }
+
+        .log-line.warn {
+            color: var(--warning);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state .icon {
+            width: 64px;
+            height: 64px;
+            background: var(--bg-input);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+
+        .empty-state svg {
+            width: 32px;
+            height: 32px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 126.61 126.61" xmlns="http://www.w3.org/2000/svg">
+                        <g fill="#000">
+                            <path
+                                d="m38.73 53.2 24.59-24.58 24.6 24.6 14.3-14.31L63.32 0l-38.9 38.9zM0 63.31l14.3-14.31 14.31 14.31-14.31 14.3zM38.73 73.41l24.59 24.59 24.6-24.6 14.31 14.29-38.9 38.91-38.91-38.88zM98 63.31l14.3-14.31 14.31 14.3-14.31 14.31z" />
+                            <path d="m77.83 63.3-14.51-14.52-10.73 10.73-1.24 1.23-2.54 2.54 14.51 14.5 14.51-14.47z" />
+                        </g>
+                    </svg>
+                </div>
+                <h1>批量提币工具</h1>
+            </div>
+            <div class="balance-card">
+                <div class="icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">
+                        <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z" />
+                    </svg>
+                </div>
+                <div class="info">
+                    <div class="label">账户余额</div>
+                    <div class="value" id="availableBalance">点击查询</div>
+                </div>
+                <button class="btn-refresh" onclick="queryBalance()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="main-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon-box"><svg viewBox="0 0 24 24">
+                            <path
+                                d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+                        </svg></div>
+                    <h2>API 配置</h2>
+                </div>
+
+                <div class="alert">⚠️ 请确保 API Key 已开启「允许提现」权限，并添加提币地址到白名单</div>
+
+                <div class="form-group">
+                    <label>API Key</label>
+                    <input type="text" id="apiKey" placeholder="输入您的 Binance API Key">
+                </div>
+
+                <div class="form-group">
+                    <label>Secret Key</label>
+                    <input type="password" id="secretKey" placeholder="输入您的 Secret Key">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>币种</label>
+                        <select id="coin">
+                            <option value="USDT">USDT</option>
+                            <option value="USDC">USDC</option>
+                            <option value="BTC">BTC</option>
+                            <option value="ETH">ETH</option>
+                            <option value="BNB">BNB</option>
+                            <option value="SOL">SOL</option>
+                            <option value="TRX">TRX</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>网络</label>
+                        <select id="network">
+                            <option value="TRX">TRC20</option>
+                            <option value="ETH">ERC20</option>
+                            <option value="BSC">BEP20</option>
+                            <option value="ARBITRUM">Arbitrum One</option>
+                            <option value="OPTIMISM">Optimism</option>
+                            <option value="MATIC">Polygon</option>
+                            <option value="SOL">Solana</option>
+                            <option value="AVAXC">Avalanche C-Chain</option>
+                            <option value="TON">TON</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>输入模式</label>
+                    <div class="mode-selector">
+                        <input type="radio" name="inputMode" id="modeCustom" value="custom" checked
+                            onchange="toggleInputMode()">
+                        <label for="modeCustom">自定义数量</label>
+                        <input type="radio" name="inputMode" id="modeUniform" value="uniform"
+                            onchange="toggleInputMode()">
+                        <label for="modeUniform">统一数量</label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="uniformAmountBox" style="display: none;">
+                    <label>统一提币数量</label>
+                    <input type="number" id="uniformAmount" placeholder="每个地址的提币数量" step="0.0001" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label id="transferListLabel">批量提币列表</label>
+                    <textarea id="transferList"
+                        placeholder="每行一条: 地址,数量&#10;例如:&#10;TXxxxxxxxx,100&#10;TYxxxxxxxx,200"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>延迟间隔 (秒)</label>
+                        <input type="number" id="delay" value="3" min="1" max="60">
+                    </div>
+                    <div class="form-group">
+                        <label>备注标签</label>
+                        <input type="text" id="withdrawOrderId" placeholder="可选">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>手续费支付方式</label>
+                    <div class="mode-selector">
+                        <input type="radio" name="feeMode" id="feeSender" value="sender" checked>
+                        <label for="feeSender">发送方支付</label>
+                        <input type="radio" name="feeMode" id="feeReceiver" value="receiver">
+                        <label for="feeReceiver">接收方支付</label>
+                    </div>
+                    <div style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">
+                        💡 发送方支付：自动增加手续费金额，接收方收到完整数额<br>
+                        💡 接收方支付：从提币金额中扣除手续费
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="parseTransferList()">📋 解析列表</button>
+                    <button class="btn btn-primary btn-full" id="startBtn" onclick="startBatchWithdraw()">🚀
+                        开始批量提币</button>
+                </div>
+
+                <div class="total-box" id="totalAmountBox">
+                    <span class="label">总提币金额</span>
+                    <span class="value" id="totalAmount">0</span>
+                </div>
+
+                <div class="total-box" id="feeBox"
+                    style="display: none; margin-top: 8px; background: linear-gradient(135deg, rgba(14, 203, 129, 0.1), rgba(14, 203, 129, 0.02)); border-color: rgba(14, 203, 129, 0.2);">
+                    <div>
+                        <span class="label">预估总手续费</span>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">
+                            <span id="feePerTx">-</span> × <span id="txCount">0</span> 笔
+                        </div>
+                    </div>
+                    <span class="value" id="totalFee"
+                        style="background: linear-gradient(135deg, #0ECB81, #00D68F); -webkit-background-clip: text; background-clip: text;">0</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon-box"><svg viewBox="0 0 24 24">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                        </svg></div>
+                    <h2>执行状态</h2>
+                </div>
+
+                <div class="progress-section">
+                    <div class="progress-bar">
+                        <div class="fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="value" id="totalCount">0</div>
+                            <div class="label">总计</div>
+                        </div>
+                        <div class="stat-card success">
+                            <div class="value" id="successCount">0</div>
+                            <div class="label">成功</div>
+                        </div>
+                        <div class="stat-card error">
+                            <div class="value" id="errorCount">0</div>
+                            <div class="label">失败</div>
+                        </div>
+                        <div class="stat-card pending">
+                            <div class="value" id="pendingCount">0</div>
+                            <div class="label">等待</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="transfer-list" id="transferItems">
+                    <div class="empty-state">
+                        <div class="icon"><svg viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
+                            </svg></div>
+                        <p>暂无提币任务</p>
+                    </div>
+                </div>
+
+                <div class="log-area" id="logArea">
+                    <div class="log-line info">[系统] 批量提币工具已就绪</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api';
+        let transfers = [];
+        let isRunning = false;
+        let feeCache = {};
+
+        function log(message, type = 'info') {
+            const logArea = document.getElementById('logArea');
+            const time = new Date().toLocaleTimeString();
+            const line = document.createElement('div');
+            line.className = `log-line ${type}`;
+            line.textContent = `[${time}] ${message}`;
+            logArea.appendChild(line);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        function toggleInputMode() {
+            const mode = document.querySelector('input[name="inputMode"]:checked').value;
+            const uniformBox = document.getElementById('uniformAmountBox');
+            const label = document.getElementById('transferListLabel');
+            const textarea = document.getElementById('transferList');
+            if (mode === 'uniform') {
+                uniformBox.style.display = 'block';
+                label.textContent = '批量提币列表 (每行一个地址)';
+                textarea.placeholder = '每行一个地址:\nTXxxxxxxxx\nTYxxxxxxxx';
+            } else {
+                uniformBox.style.display = 'none';
+                label.textContent = '批量提币列表';
+                textarea.placeholder = '每行一条: 地址,数量\n例如:\nTXxxxxxxxx,100\nTYxxxxxxxx,200';
+            }
+        }
+
+        async function getNetworkFee(coin, network) {
+            const cacheKey = `${coin}_${network}`;
+            if (feeCache[cacheKey]) return feeCache[cacheKey];
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const secretKey = document.getElementById('secretKey').value.trim();
+            if (!apiKey || !secretKey) return null;
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'balance', apiKey, secretKey, params: {} })
+                });
+                const data = await res.json();
+                if (data.error || !Array.isArray(data)) return null;
+                const coinInfo = data.find(c => c.coin === coin);
+                if (!coinInfo || !coinInfo.networkList) return null;
+                const networkInfo = coinInfo.networkList.find(n => n.network === network);
+                if (!networkInfo) return null;
+                const fee = parseFloat(networkInfo.withdrawFee);
+                feeCache[cacheKey] = fee;
+                return fee;
+            } catch (e) { return null; }
+        }
+
+        async function updateFeeDisplay() {
+            const coin = document.getElementById('coin').value;
+            const network = document.getElementById('network').value;
+            const count = transfers.length;
+            if (count === 0) { document.getElementById('feeBox').style.display = 'none'; return; }
+            const fee = await getNetworkFee(coin, network);
+            if (fee !== null) {
+                const totalFee = fee * count;
+                const fmt = (v) => v.toFixed(8).replace(/\.?0+$/, '');
+                document.getElementById('feePerTx').textContent = `${fmt(fee)} ${coin}`;
+                document.getElementById('txCount').textContent = count;
+                document.getElementById('totalFee').textContent = `${fmt(totalFee)} ${coin}`;
+                document.getElementById('feeBox').style.display = 'flex';
+                log(`手续费: ${fmt(fee)} ${coin}/笔, 共 ${count} 笔, 总计 ${fmt(totalFee)} ${coin}`, 'info');
+            }
+        }
+
+        async function queryBalance() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const secretKey = document.getElementById('secretKey').value.trim();
+            if (!apiKey || !secretKey) { log('请先填写 API Key', 'warn'); return; }
+            try {
+                document.getElementById('availableBalance').textContent = '查询中...';
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'account', apiKey, secretKey, params: {} })
+                });
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+                const coin = document.getElementById('coin').value;
+                const balance = data.balances?.find(b => b.asset === coin);
+                const free = balance ? parseFloat(balance.free).toFixed(4) : '0';
+                document.getElementById('availableBalance').textContent = `${free} ${coin}`;
+                log(`余额: ${free} ${coin}`, 'success');
+            } catch (e) {
+                document.getElementById('availableBalance').textContent = '查询失败';
+                log(`查询失败: ${e.message}`, 'error');
+            }
+        }
+
+        function parseTransferList() {
+            const text = document.getElementById('transferList').value.trim();
+            if (!text) { log('请输入提币列表', 'warn'); return; }
+            const mode = document.querySelector('input[name="inputMode"]:checked').value;
+            const uniformAmount = parseFloat(document.getElementById('uniformAmount').value);
+            if (mode === 'uniform' && (!uniformAmount || uniformAmount <= 0)) {
+                log('请输入统一数量', 'error'); return;
+            }
+            transfers = [];
+            const lines = text.split('\n').filter(l => l.trim());
+            for (const line of lines) {
+                let address, amount;
+                if (mode === 'uniform') {
+                    address = line.trim().split(/[,，\t]/)[0].trim();
+                    amount = uniformAmount;
+                } else {
+                    const parts = line.split(/[,，\t]/).map(p => p.trim());
+                    if (parts.length >= 2) { address = parts[0]; amount = parseFloat(parts[1]); }
+                }
+                if (address && !isNaN(amount) && amount > 0) {
+                    transfers.push({ address, amount, status: 'pending', txId: null, error: null });
+                }
+            }
+            if (transfers.length === 0) { log('未解析到有效记录', 'error'); return; }
+            const coin = document.getElementById('coin').value;
+            const total = transfers.reduce((s, t) => s + t.amount, 0);
+            document.getElementById('totalAmountBox').style.display = 'flex';
+            document.getElementById('totalAmount').textContent = `${total.toFixed(4)} ${coin}`;
+            log(`解析 ${transfers.length} 条, 总额: ${total.toFixed(4)} ${coin}`, 'success');
+            updateUI();
+            updateFeeDisplay();
+        }
+
+        function updateUI() {
+            const container = document.getElementById('transferItems');
+            const coin = document.getElementById('coin').value;
+            const success = transfers.filter(t => t.status === 'success').length;
+            const error = transfers.filter(t => t.status === 'error').length;
+            const pending = transfers.filter(t => t.status === 'pending' || t.status === 'processing').length;
+            document.getElementById('totalCount').textContent = transfers.length;
+            document.getElementById('successCount').textContent = success;
+            document.getElementById('errorCount').textContent = error;
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('progressFill').style.width = `${transfers.length > 0 ? (success + error) / transfers.length * 100 : 0}%`;
+            if (transfers.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>暂无提币任务</p></div>';
+                return;
+            }
+            container.innerHTML = transfers.map((t, i) => `
+                <div class="transfer-item">
+                    <div class="index">${i + 1}</div>
+                    <div class="address">${t.address.slice(0, 10)}...${t.address.slice(-6)}</div>
+                    <div class="amount">${t.amount} ${coin}</div>
+                    <div class="status status-${t.status}">
+                        <span class="status-dot"></span>
+                        ${t.status === 'pending' ? '等待' : t.status === 'processing' ? '处理中' : t.status === 'success' ? '成功' : (t.error || '失败').slice(0, 12)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function withdraw(address, amount, coin, network, apiKey, secretKey) {
+            const withdrawOrderId = document.getElementById('withdrawOrderId').value.trim();
+            const res = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'withdraw', apiKey, secretKey,
+                    params: {
+                        coin, network, address, amount,
+                        withdrawOrderId: withdrawOrderId ? `${withdrawOrderId}_${Date.now()}` : undefined
+                    }
+                })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+            return data;
+        }
+
+        async function startBatchWithdraw() {
+            if (isRunning) {
+                isRunning = false;
+                document.getElementById('startBtn').textContent = '🚀 开始批量提币';
+                document.getElementById('startBtn').classList.remove('btn-danger');
+                document.getElementById('startBtn').classList.add('btn-primary');
+                log('已停止', 'warn');
+                return;
+            }
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const secretKey = document.getElementById('secretKey').value.trim();
+            const coin = document.getElementById('coin').value;
+            const network = document.getElementById('network').value;
+            const delay = parseInt(document.getElementById('delay').value) || 3;
+            const feeMode = document.querySelector('input[name="feeMode"]:checked').value;
+            const feeModeText = feeMode === 'receiver' ? '接收方支付' : '发送方支付';
+            if (!apiKey || !secretKey) { log('请填写 API Key', 'error'); return; }
+            if (transfers.length === 0) { log('请先解析列表', 'error'); return; }
+            const pending = transfers.filter(t => t.status === 'pending');
+            if (pending.length === 0) { log('没有待处理任务', 'warn'); return; }
+            if (!confirm(`确认提币 ${pending.length} 笔？\n手续费: ${feeModeText}`)) return;
+            isRunning = true;
+            document.getElementById('startBtn').textContent = '⏹️ 停止';
+            document.getElementById('startBtn').classList.remove('btn-primary');
+            document.getElementById('startBtn').classList.add('btn-danger');
+            log(`开始提币: ${pending.length} 笔 (${feeModeText})`, 'info');
+
+            // 获取当前手续费
+            const feeKey = `${coin}_${network}`;
+            const withdrawFee = feeCache[feeKey] || 0;
+            if (feeMode === 'sender' && withdrawFee > 0) {
+                log(`发送方支付模式: 每笔将额外增加 ${withdrawFee} ${coin} 手续费`, 'info');
+            }
+
+            for (let i = 0; i < transfers.length; i++) {
+                if (!isRunning) break;
+                const t = transfers[i];
+                if (t.status !== 'pending') continue;
+                t.status = 'processing';
+                updateUI();
+
+                // 计算实际提币金额：发送方支付时加上手续费
+                let actualAmount = parseFloat(t.amount);
+                if (feeMode === 'sender' && withdrawFee > 0) {
+                    actualAmount = actualAmount + withdrawFee;
+                }
+
+                log(`[${i + 1}] 提币 ${actualAmount} ${coin} → ${t.address.slice(0, 10)}...${feeMode === 'sender' ? ` (含手续费 ${withdrawFee})` : ''}`, 'info');
+                try {
+                    const result = await withdraw(t.address, actualAmount, coin, network, apiKey, secretKey);
+                    t.status = 'success';
+                    t.txId = result.id;
+                    log(`[${i + 1}] ✅ 成功 (接收方将收到 ${t.amount} ${coin})`, 'success');
+                } catch (e) {
+                    t.status = 'error';
+                    t.error = e.message;
+                    log(`[${i + 1}] ❌ ${e.message}`, 'error');
+                }
+                updateUI();
+                if (isRunning && i < transfers.length - 1) await new Promise(r => setTimeout(r, delay * 1000));
+            }
+            isRunning = false;
+            document.getElementById('startBtn').textContent = '🚀 开始批量提币';
+            document.getElementById('startBtn').classList.remove('btn-danger');
+            document.getElementById('startBtn').classList.add('btn-primary');
+            const s = transfers.filter(t => t.status === 'success').length;
+            log(`完成! 成功: ${s}/${transfers.length}`, s > 0 ? 'success' : 'warn');
+        }
+
+        document.getElementById('coin').addEventListener('change', function () {
+            const coin = this.value;
+            const network = document.getElementById('network');
+            const networks = {
+                'USDT': [['TRX', 'TRC20'], ['ETH', 'ERC20'], ['BSC', 'BEP20'], ['ARBITRUM', 'Arbitrum One'], ['OPTIMISM', 'Optimism'], ['MATIC', 'Polygon'], ['SOL', 'Solana'], ['AVAXC', 'Avalanche C-Chain'], ['TON', 'TON']],
+                'USDC': [['ETH', 'ERC20'], ['BSC', 'BEP20'], ['SOL', 'Solana'], ['ARBITRUM', 'Arbitrum One'], ['OPTIMISM', 'Optimism'], ['MATIC', 'Polygon'], ['AVAXC', 'Avalanche C-Chain'], ['BASE', 'Base']],
+                'BTC': [['BTC', 'Bitcoin'], ['BTCLN', 'Lightning Network']],
+                'ETH': [['ETH', 'ERC20'], ['BSC', 'BEP20'], ['ARBITRUM', 'Arbitrum One'], ['OPTIMISM', 'Optimism'], ['BASE', 'Base'], ['ZKSYNC', 'zkSync Era']],
+                'BNB': [['BSC', 'BEP20'], ['ETH', 'ERC20'], ['OPBNB', 'opBNB']],
+                'SOL': [['SOL', 'Solana']],
+                'TRX': [['TRX', 'TRC20']]
+            };
+            const opts = networks[coin] || [['ETH', 'ERC20']];
+            network.innerHTML = opts.map(([v, n]) => `<option value="${v}">${n}</option>`).join('');
+        });
+
+        log('请配置 API 并输入提币列表', 'info');
+    </script>
+</body>
+
+</html>

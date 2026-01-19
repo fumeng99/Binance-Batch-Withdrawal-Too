@@ -1,0 +1,19 @@
+{
+    "name": "binance-batch-withdraw",
+    "version": "1.0.0",
+    "description": "Binance 批量提币工具",
+    "main": "server.js",
+    "bin": "server.js",
+    "pkg": {
+        "assets": [
+            "index.html"
+        ],
+        "targets": [
+            "node18-win-x64"
+        ],
+        "outputPath": "dist"
+    },
+    "scripts": {
+        "build": "pkg . --output dist/binance-withdraw.exe"
+    }
+}
