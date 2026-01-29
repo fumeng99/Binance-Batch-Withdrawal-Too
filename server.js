@@ -87,7 +87,7 @@ async function handleApiRequest(req, res, body) {
                 coin,
                 network,
                 address,
-                amount: amount.toString(),
+                amount: parseFloat(amount).toFixed(8),
                 timestamp: timestamp.toString()
             };
 
