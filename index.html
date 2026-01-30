@@ -26,6 +26,70 @@
             --gradient-dark: linear-gradient(180deg, #1A1D21 0%, #0B0E11 100%);
         }
 
+        /* 选项卡样式 */
+        .config-tabs {
+            display: flex;
+            gap: 4px;
+            background: rgba(43, 49, 57, 0.5);
+            padding: 4px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .config-tab {
+            flex: 1;
+            padding: 10px 16px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .config-tab:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .config-tab.active {
+            background: linear-gradient(135deg, rgba(240, 185, 11, 0.2), rgba(240, 185, 11, 0.1));
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(240, 185, 11, 0.2);
+        }
+
+        .config-tab-icon {
+            font-size: 14px;
+        }
+
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -571,6 +635,116 @@
             height: 32px;
             opacity: 0.5;
         }
+
+        /* 开关切换样式 */
+        .toggle-switch {
+            position: relative;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-switch .slider {
+            width: 36px;
+            height: 20px;
+            background: var(--bg-input);
+            border-radius: 10px;
+            position: relative;
+            transition: 0.3s;
+            border: 1px solid var(--border);
+        }
+
+        .toggle-switch .slider::before {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+            top: 2px;
+            left: 2px;
+            transition: 0.3s;
+        }
+
+        .toggle-switch input:checked+.slider {
+            background: linear-gradient(135deg, var(--primary), #FFD700);
+        }
+
+        .toggle-switch input:checked+.slider::before {
+            transform: translateX(16px);
+            background: #000;
+        }
+
+        /* 网络信息显示样式 */
+        .network-info-box {
+            background: rgba(30, 35, 41, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 18px;
+        }
+
+        .network-info-row {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .network-info-row:last-of-type {
+            border-bottom: none;
+        }
+
+        .network-info-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+            min-width: 100px;
+        }
+
+        .network-info-value {
+            font-weight: 600;
+            font-size: 14px;
+            margin-left: 8px;
+        }
+
+        .network-info-value.fee {
+            color: var(--primary);
+        }
+
+        .network-info-value.min {
+            color: var(--warning);
+        }
+
+        .network-info-value.time {
+            color: var(--text-secondary);
+        }
+
+        .network-info-usd {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-left: 8px;
+        }
+
+        .network-refresh-btn {
+            width: 100%;
+            margin-top: 12px;
+            padding: 10px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .network-refresh-btn:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
     </style>
 </head>
 
@@ -616,119 +790,243 @@
                             <path
                                 d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
                         </svg></div>
-                    <h2>API 配置</h2>
+                    <h2>配置中心</h2>
                 </div>
 
-                <div class="alert">⚠️ 请确保 API Key 已开启「允许提现」权限，并添加提币地址到白名单</div>
-
-                <div class="form-group">
-                    <label>API Key</label>
-                    <input type="text" id="apiKey" placeholder="输入您的 Binance API Key">
+                <!-- 选项卡导航 -->
+                <div class="config-tabs">
+                    <button class="config-tab active" onclick="switchConfigTab('api')">
+                        <span class="config-tab-icon">🔐</span> API 配置
+                    </button>
+                    <button class="config-tab" onclick="switchConfigTab('withdraw')">
+                        <span class="config-tab-icon">💰</span> 提币设置
+                    </button>
+                    <button class="config-tab" onclick="switchConfigTab('advanced')">
+                        <span class="config-tab-icon">⚙️</span> 高级选项
+                    </button>
                 </div>
 
-                <div class="form-group">
-                    <label>Secret Key</label>
-                    <input type="password" id="secretKey" placeholder="输入您的 Secret Key">
-                </div>
+                <!-- API 配置面板 -->
+                <div id="tabApi" class="tab-panel active">
+                    <div class="alert"
+                        style="background: linear-gradient(135deg, rgba(14, 203, 129, 0.15), rgba(14, 203, 129, 0.05)); border-color: rgba(14, 203, 129, 0.3); color: var(--success);">
+                        🔐 安全模式已启用 - 请从控制台复制 Session Token</div>
 
-                <div class="form-row">
                     <div class="form-group">
-                        <label>币种</label>
-                        <select id="coin">
-                            <option value="USDT">USDT</option>
-                            <option value="USDC">USDC</option>
-                            <option value="BTC">BTC</option>
-                            <option value="ETH">ETH</option>
-                            <option value="BNB">BNB</option>
-                            <option value="SOL">SOL</option>
-                            <option value="TRX">TRX</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>网络</label>
-                        <select id="network">
-                            <option value="TRX">TRC20</option>
-                            <option value="ETH">ERC20</option>
-                            <option value="BSC">BEP20</option>
-                            <option value="ARBITRUM">Arbitrum One</option>
-                            <option value="OPTIMISM">Optimism</option>
-                            <option value="MATIC">Polygon</option>
-                            <option value="SOL">Solana</option>
-                            <option value="AVAXC">Avalanche C-Chain</option>
-                            <option value="TON">TON</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>输入模式</label>
-                    <div class="mode-selector">
-                        <input type="radio" name="inputMode" id="modeCustom" value="custom" checked
-                            onchange="toggleInputMode()">
-                        <label for="modeCustom">自定义数量</label>
-                        <input type="radio" name="inputMode" id="modeUniform" value="uniform"
-                            onchange="toggleInputMode()">
-                        <label for="modeUniform">统一数量</label>
-                    </div>
-                </div>
-
-                <div class="form-group" id="uniformAmountBox" style="display: none;">
-                    <label>统一提币数量</label>
-                    <input type="number" id="uniformAmount" placeholder="每个地址的提币数量" step="0.0001" min="0">
-                </div>
-
-                <div class="form-group">
-                    <label id="transferListLabel">批量提币列表</label>
-                    <textarea id="transferList"
-                        placeholder="每行一条: 地址,数量&#10;例如:&#10;TXxxxxxxxx,100&#10;TYxxxxxxxx,200"></textarea>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>延迟间隔 (秒)</label>
-                        <input type="number" id="delay" value="3" min="1" max="60">
-                    </div>
-                    <div class="form-group">
-                        <label>备注标签</label>
-                        <input type="text" id="withdrawOrderId" placeholder="可选">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>手续费支付方式</label>
-                    <div class="mode-selector">
-                        <input type="radio" name="feeMode" id="feeSender" value="sender" checked>
-                        <label for="feeSender">发送方支付</label>
-                        <input type="radio" name="feeMode" id="feeReceiver" value="receiver">
-                        <label for="feeReceiver">接收方支付</label>
-                    </div>
-                    <div style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">
-                        💡 发送方支付：自动增加手续费金额，接收方收到完整数额<br>
-                        💡 接收方支付：从提币金额中扣除手续费
-                    </div>
-                </div>
-
-                <div class="btn-group">
-                    <button class="btn btn-secondary" onclick="parseTransferList()">📋 解析列表</button>
-                    <button class="btn btn-primary btn-full" id="startBtn" onclick="startBatchWithdraw()">🚀
-                        开始批量提币</button>
-                </div>
-
-                <div class="total-box" id="totalAmountBox">
-                    <span class="label">总提币金额</span>
-                    <span class="value" id="totalAmount">0</span>
-                </div>
-
-                <div class="total-box" id="feeBox"
-                    style="display: none; margin-top: 8px; background: linear-gradient(135deg, rgba(14, 203, 129, 0.1), rgba(14, 203, 129, 0.02)); border-color: rgba(14, 203, 129, 0.2);">
-                    <div>
-                        <span class="label">预估总手续费</span>
-                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">
-                            <span id="feePerTx">-</span> × <span id="txCount">0</span> 笔
+                        <label>Session Token <span style="color: var(--danger); font-size: 11px;">(从控制台复制)</span> <span
+                                id="tokenStatus"></span></label>
+                        <div style="position: relative;">
+                            <input type="text" id="sessionToken" placeholder="粘贴控制台显示的 Token"
+                                style="font-family: 'Consolas', monospace; letter-spacing: 1px;"
+                                oninput="validateToken()">
                         </div>
                     </div>
-                    <span class="value" id="totalFee"
-                        style="background: linear-gradient(135deg, #0ECB81, #00D68F); -webkit-background-clip: text; background-clip: text;">0</span>
+
+                    <!-- 隐藏的加密密钥存储 -->
+                    <input type="hidden" id="encryptionKey">
+                    <span id="encKeyStatus" style="display: none;"></span>
+
+                    <div class="alert">⚠️ 请确保 API Key 已开启「允许提现」权限，并添加提币地址到白名单</div>
+
+                    <div class="form-group">
+                        <label>API Key</label>
+                        <input type="text" id="apiKey" placeholder="输入您的 Binance API Key">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Secret Key</label>
+                        <div style="position: relative;">
+                            <input type="password" id="secretKey" placeholder="输入您的 Secret Key"
+                                style="padding-right: 50px;">
+                            <button type="button" onclick="togglePasswordVisibility()"
+                                style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 18px; padding: 4px;"
+                                id="togglePwdBtn" title="显示/隐藏">👁️</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>代理设置 <span style="color: var(--text-secondary); font-size: 11px;">(可选)</span> <span
+                                id="proxyStatus"></span></label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="proxyUrl" placeholder="host:port:user:pass 或 http://host:port"
+                                style="font-family: 'Consolas', monospace; flex: 1;">
+                            <button type="button" onclick="testProxy()"
+                                style="padding: 0 16px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-secondary); cursor: pointer; white-space: nowrap;"
+                                id="testProxyBtn">🔍 检测</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 提币设置面板 -->
+                <div id="tabWithdraw" class="tab-panel">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>币种</label>
+                            <select id="coin" onchange="onCoinChange()">
+                                <optgroup label="稳定币">
+                                    <option value="USDT" selected>USDT - 泰达币</option>
+                                    <option value="USDC">USDC - USD Coin</option>
+                                    <option value="FDUSD">FDUSD - First Digital USD</option>
+                                </optgroup>
+                                <optgroup label="主流币">
+                                    <option value="BTC">BTC - 比特币</option>
+                                    <option value="ETH">ETH - 以太坊</option>
+                                    <option value="BNB">BNB - 币安币</option>
+                                    <option value="SOL">SOL - Solana</option>
+                                    <option value="XRP">XRP - 瑞波币</option>
+                                </optgroup>
+                                <optgroup label="热门币">
+                                    <option value="DOGE">DOGE - 狗狗币</option>
+                                    <option value="ADA">ADA - 卡尔达诺</option>
+                                    <option value="AVAX">AVAX - Avalanche</option>
+                                    <option value="DOT">DOT - 波卡</option>
+                                    <option value="MATIC">MATIC - Polygon</option>
+                                    <option value="LINK">LINK - Chainlink</option>
+                                    <option value="TRX">TRX - 波场</option>
+                                    <option value="ATOM">ATOM - Cosmos</option>
+                                    <option value="UNI">UNI - Uniswap</option>
+                                    <option value="LTC">LTC - 莱特币</option>
+                                    <option value="SHIB">SHIB - 柴犬币</option>
+                                </optgroup>
+                                <optgroup label="Layer2 & 新兴">
+                                    <option value="ARB">ARB - Arbitrum</option>
+                                    <option value="OP">OP - Optimism</option>
+                                    <option value="APT">APT - Aptos</option>
+                                    <option value="SUI">SUI - Sui</option>
+                                    <option value="NEAR">NEAR - NEAR Protocol</option>
+                                    <option value="INJ">INJ - Injective</option>
+                                </optgroup>
+                                <optgroup label="其他">
+                                    <option value="PEPE">PEPE - Pepe</option>
+                                    <option value="FIL">FIL - Filecoin</option>
+                                    <option value="ICP">ICP - Internet Computer</option>
+                                    <option value="CUSTOM">✏️ 自定义币种...</option>
+                                </optgroup>
+                            </select>
+                            <input type="text" id="customCoin" placeholder="输入币种符号 (如 TRUMP)"
+                                style="display: none; margin-top: 8px; text-transform: uppercase;">
+                        </div>
+                        <div class="form-group">
+                            <label>网络</label>
+                            <select id="network">
+                                <option value="BSC">BEP20 (BNB Chain)</option>
+                                <option value="TRX">TRC20 (TRON)</option>
+                                <option value="ETH">ERC20 (Ethereum)</option>
+                                <option value="ARBITRUM">Arbitrum One</option>
+                                <option value="OPTIMISM">Optimism</option>
+                                <option value="MATIC">Polygon</option>
+                                <option value="SOL">Solana</option>
+                                <option value="AVAXC">Avalanche C-Chain</option>
+                                <option value="TON">TON</option>
+                                <option value="BASE">Base</option>
+                                <option value="ZKSYNC">zkSync Era</option>
+                                <option value="LINEA">Linea</option>
+                                <option value="SCROLL">Scroll</option>
+                                <option value="MANTLE">Mantle</option>
+                                <option value="CELO">Celo</option>
+                                <option value="FTM">Fantom</option>
+                                <option value="KAVA">Kava</option>
+                                <option value="APT">Aptos</option>
+                                <option value="SUI">Sui</option>
+                                <option value="ATOM">Cosmos</option>
+                                <option value="ALGO">Algorand</option>
+                                <option value="XRP">XRP Ledger</option>
+                                <option value="BTC">Bitcoin</option>
+                                <option value="LTC">Litecoin</option>
+                                <option value="DOGE">Dogecoin</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 网络信息显示 -->
+                    <div id="networkInfoBox" class="network-info-box" style="display: none;">
+                        <div class="network-info-row">
+                            <span class="network-info-label">手续费</span>
+                            <span id="networkFeeDisplay" class="network-info-value fee">-</span>
+                            <span id="networkFeeUSD" class="network-info-usd"></span>
+                        </div>
+                        <div class="network-info-row">
+                            <span class="network-info-label">最小提现数量</span>
+                            <span id="networkMinDisplay" class="network-info-value min">-</span>
+                        </div>
+                        <div class="network-info-row">
+                            <span class="network-info-label">到账时间</span>
+                            <span id="networkTimeDisplay" class="network-info-value time">≈ 1分钟</span>
+                        </div>
+                        <button onclick="refreshNetworkInfo()" class="network-refresh-btn" title="刷新">🔄 查询</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>输入模式</label>
+                        <div class="mode-selector">
+                            <input type="radio" name="inputMode" id="modeCustom" value="custom" checked
+                                onchange="toggleInputMode()">
+                            <label for="modeCustom">自定义数量</label>
+                            <input type="radio" name="inputMode" id="modeUniform" value="uniform"
+                                onchange="toggleInputMode()">
+                            <label for="modeUniform">统一数量</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="uniformAmountBox" style="display: none;">
+                        <label>统一提币数量</label>
+                        <input type="number" id="uniformAmount" placeholder="每个地址的提币数量" step="0.0001" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label id="transferListLabel">批量提币列表</label>
+                        <textarea id="transferList"
+                            placeholder="每行一条: 地址,数量&#10;例如:&#10;TXxxxxxxxx,100&#10;TYxxxxxxxx,200"></textarea>
+                    </div>
+                </div>
+
+                <!-- 高级选项面板 -->
+                <div id="tabAdvanced" class="tab-panel">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <label style="margin: 0;">延迟间隔 (秒)</label>
+                                <label class="toggle-switch"
+                                    style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); cursor: pointer;">
+                                    <span>固定</span>
+                                    <input type="checkbox" id="randomDelayToggle" onchange="toggleDelayMode()">
+                                    <span class="slider"></span>
+                                    <span>随机</span>
+                                </label>
+                            </div>
+                            <div id="fixedDelayBox">
+                                <input type="number" id="delay" value="3" min="1" max="60">
+                            </div>
+                            <div id="randomDelayBox" style="display: none;">
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <input type="number" id="delayMin" value="2" min="1" max="60" style="flex: 1;"
+                                        placeholder="最小">
+                                    <span style="color: var(--text-secondary);">~</span>
+                                    <input type="number" id="delayMax" value="5" min="1" max="60" style="flex: 1;"
+                                        placeholder="最大">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>备注标签</label>
+                            <input type="text" id="withdrawOrderId" placeholder="可选">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>手续费支付方式</label>
+                        <div class="mode-selector">
+                            <input type="radio" name="feeMode" id="feeSender" value="sender" checked>
+                            <label for="feeSender">发送方支付</label>
+                            <input type="radio" name="feeMode" id="feeReceiver" value="receiver">
+                            <label for="feeReceiver">接收方支付</label>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">
+                            💡 发送方支付：自动增加手续费金额，接收方收到完整数额<br>
+                            💡 接收方支付：从提币金额中扣除手续费
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -774,6 +1072,56 @@
                     </div>
                 </div>
 
+                <!-- 失败任务显示区域 -->
+                <div id="failedTasksBox" class="alert"
+                    style="display: none; background: linear-gradient(135deg, rgba(248, 81, 73, 0.15), rgba(248, 81, 73, 0.05)); border-color: rgba(248, 81, 73, 0.3); margin-top: 16px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 20px;">❌</span>
+                            <span style="font-weight: 600; color: var(--error);">失败任务 (<span id="failedCount">0</span>
+                                笔)</span>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="retryFailed()" class="btn btn-primary"
+                                style="padding: 6px 12px; font-size: 12px;">🔄 重试失败</button>
+                            <button onclick="copyFailedAddresses()"
+                                style="background: none; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 6px 12px; color: var(--text-secondary); cursor: pointer; font-size: 12px;">📋
+                                复制地址</button>
+                        </div>
+                    </div>
+                    <div id="failedTasksList" style="max-height: 200px; overflow-y: auto; font-size: 13px;"></div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="parseTransferList()">📋 解析列表</button>
+                    <button class="btn btn-primary btn-full" id="startBtn" onclick="startBatchWithdraw()">🚀
+                        开始批量提币</button>
+                </div>
+
+                <div class="btn-group" style="margin-top: 8px;">
+                    <button class="btn btn-secondary btn-full" onclick="exportResults()"
+                        style="background: linear-gradient(135deg, rgba(88, 166, 255, 0.2), rgba(88, 166, 255, 0.05)); border-color: rgba(88, 166, 255, 0.3); color: #58A6FF;">📤
+                        导出结果 CSV</button>
+                </div>
+
+                <div class="total-box" id="totalAmountBox">
+                    <span class="label">总提币金额</span>
+                    <span class="value" id="totalAmount">0</span>
+                </div>
+
+                <div class="total-box" id="feeBox"
+                    style="display: none; margin-top: 8px; background: linear-gradient(135deg, rgba(14, 203, 129, 0.1), rgba(14, 203, 129, 0.02)); border-color: rgba(14, 203, 129, 0.2);">
+                    <div>
+                        <span class="label">预估总手续费</span>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">
+                            <span id="feePerTx">-</span> × <span id="txCount">0</span> 笔
+                        </div>
+                    </div>
+                    <span class="value" id="totalFee"
+                        style="background: linear-gradient(135deg, #0ECB81, #00D68F); -webkit-background-clip: text; background-clip: text;">0</span>
+                </div>
+
                 <div class="log-area" id="logArea">
                     <div class="log-line info">[系统] 批量提币工具已就绪</div>
                 </div>
@@ -786,6 +1134,744 @@
         let transfers = [];
         let isRunning = false;
         let feeCache = {};
+        let networkInfoCache = {}; // 缓存网络信息
+        let coinPrecisionCache = {}; // 缓存币种精度
+
+        // 选项卡切换函数
+        function switchConfigTab(tabName) {
+            // 更新选项卡按钮状态
+            document.querySelectorAll('.config-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+
+            // 切换面板显示
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+
+            const panelMap = {
+                'api': 'tabApi',
+                'withdraw': 'tabWithdraw',
+                'advanced': 'tabAdvanced'
+            };
+
+            const targetPanel = document.getElementById(panelMap[tabName]);
+            if (targetPanel) {
+                targetPanel.classList.add('active');
+            }
+
+            // 切换到「提币设置」时，如果已填写API Key，自动刷新网络信息
+            if (tabName === 'withdraw') {
+                const apiKey = document.getElementById('apiKey').value.trim();
+                const secretKey = document.getElementById('secretKey').value.trim();
+                const sessionToken = document.getElementById('sessionToken').value.trim();
+                if (apiKey && secretKey && sessionToken) {
+                    refreshNetworkInfo();
+                }
+            }
+        }
+
+        // 从 withdrawIntegerMultiple 计算精度
+        function getPrecisionFromMultiple(multiple) {
+            if (!multiple) return 8;
+            const str = String(multiple);
+            const dotIndex = str.indexOf('.');
+            if (dotIndex === -1) return 0;
+            return str.length - dotIndex - 1;
+        }
+
+        // 根据精度格式化数值
+        function formatByPrecision(value, multiple) {
+            const precision = getPrecisionFromMultiple(multiple);
+            const num = parseFloat(value);
+            if (isNaN(num)) return value;
+            // 移除尾部多余的 0
+            return num.toFixed(precision).replace(/\.?0+$/, '') || '0';
+        }
+
+        // 获取币种精度 (默认 8 位)
+        function getCoinPrecision(coin) {
+            return coinPrecisionCache[coin] || 8;
+        }
+
+        // 格式化金额显示
+        function formatAmount(value, coin) {
+            const precision = getCoinPrecision(coin);
+            const num = parseFloat(value);
+            if (isNaN(num)) return value;
+            return num.toFixed(precision).replace(/\.?0+$/, '') || '0';
+        }
+
+        // 切换延迟模式 (固定/随机)
+        function toggleDelayMode() {
+            const isRandom = document.getElementById('randomDelayToggle').checked;
+            document.getElementById('fixedDelayBox').style.display = isRandom ? 'none' : 'block';
+            document.getElementById('randomDelayBox').style.display = isRandom ? 'block' : 'none';
+        }
+
+        // 获取延迟时间 (支持固定和随机)
+        function getDelay() {
+            const isRandom = document.getElementById('randomDelayToggle').checked;
+            if (isRandom) {
+                const min = parseInt(document.getElementById('delayMin').value) || 2;
+                const max = parseInt(document.getElementById('delayMax').value) || 5;
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            } else {
+                return parseInt(document.getElementById('delay').value) || 3;
+            }
+        }
+
+        // 币种价格缓存
+        let priceCache = {};
+
+        // 查询币种实时价格
+        async function getCoinPrice(coin) {
+            // 检查缓存（5分钟内有效）
+            const cacheKey = coin.toUpperCase();
+            const cached = priceCache[cacheKey];
+            if (cached && (Date.now() - cached.time) < 300000) {
+                return cached.data;
+            }
+
+            const sessionToken = document.getElementById('sessionToken').value.trim().replace(/-/g, '');
+            if (!sessionToken) return null;
+
+            try {
+                const encKey = document.getElementById('encryptionKey').value.trim();
+                if (!encKey || encKey.length !== 64) return null;
+
+                const apiKey = document.getElementById('apiKey').value.trim();
+                const secretKey = document.getElementById('secretKey').value.trim();
+                if (!apiKey || !secretKey) return null;
+
+                const encApiKey = await encryptAES(apiKey);
+                const encSecretKey = await encryptAES(secretKey);
+                const proxyUrl = document.getElementById('proxyUrl').value.trim();
+
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Session-Token': sessionToken },
+                    body: JSON.stringify({
+                        action: 'price',
+                        apiKey: encApiKey,
+                        secretKey: encSecretKey,
+                        proxyUrl,
+                        params: { symbol: coin }
+                    })
+                });
+                const data = await res.json();
+
+                // 缓存结果
+                priceCache[cacheKey] = { data, time: Date.now() };
+                return data;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // 查询并显示网络信息 (手续费、最小提币、到账时间)
+        async function refreshNetworkInfo() {
+            const coin = getSelectedCoin();
+            const network = document.getElementById('network').value.toUpperCase().trim();
+
+            if (!coin || !network) {
+                log('请先选择币种和网络', 'warn');
+                return;
+            }
+
+            const sessionToken = document.getElementById('sessionToken').value.trim().replace(/-/g, '');
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const secretKey = document.getElementById('secretKey').value.trim();
+
+            if (!sessionToken || !apiKey || !secretKey) {
+                log('请先填写 Token 和 API 密钥', 'warn');
+                return;
+            }
+
+            const infoBox = document.getElementById('networkInfoBox');
+            infoBox.style.display = 'block';
+            document.getElementById('networkFeeDisplay').textContent = '查询中...';
+            document.getElementById('networkFeeUSD').textContent = '';
+            document.getElementById('networkMinDisplay').textContent = '查询中...';
+            document.getElementById('networkTimeDisplay').textContent = '查询中...';
+
+            try {
+                const encApiKey = await encryptAES(apiKey);
+                const encSecretKey = await encryptAES(secretKey);
+                const proxyUrl = document.getElementById('proxyUrl').value.trim();
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Session-Token': sessionToken },
+                    body: JSON.stringify({ action: 'balance', apiKey: encApiKey, secretKey: encSecretKey, proxyUrl, params: {} })
+                });
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                const coinInfo = data.find(c => c.coin === coin);
+                if (!coinInfo) {
+                    document.getElementById('networkFeeDisplay').textContent = '未找到币种';
+                    document.getElementById('networkMinDisplay').textContent = '-';
+                    document.getElementById('networkTimeDisplay').textContent = '-';
+                    return;
+                }
+
+                const networkInfo = coinInfo.networkList?.find(n => n.network === network);
+                if (!networkInfo) {
+                    document.getElementById('networkFeeDisplay').textContent = '未找到网络';
+                    document.getElementById('networkMinDisplay').textContent = '-';
+                    document.getElementById('networkTimeDisplay').textContent = '-';
+                    return;
+                }
+
+                const fee = parseFloat(networkInfo.withdrawFee) || 0;
+                const minAmount = parseFloat(networkInfo.withdrawMin) || 0;
+                const estimateTime = networkInfo.estimatedArrivalTime || 5; // 预计到账时间（分钟）
+
+                // 显示手续费
+                document.getElementById('networkFeeDisplay').textContent = `${fee} ${coin}`;
+
+                // 查询实时价格计算美元估值
+                try {
+                    const priceData = await getCoinPrice(coin);
+                    if (priceData && priceData.price) {
+                        const usdValue = fee * parseFloat(priceData.price);
+                        document.getElementById('networkFeeUSD').textContent = `(≈ $${usdValue.toFixed(8)})`;
+                    } else {
+                        document.getElementById('networkFeeUSD').textContent = '';
+                    }
+                } catch (priceErr) {
+                    document.getElementById('networkFeeUSD').textContent = '';
+                }
+
+                // 显示最小提现数量
+                document.getElementById('networkMinDisplay').textContent = `${minAmount} ${coin}`;
+
+                // 显示到账时间
+                if (estimateTime < 60) {
+                    document.getElementById('networkTimeDisplay').textContent = `≈ ${estimateTime}分钟`;
+                } else {
+                    const hours = Math.floor(estimateTime / 60);
+                    const mins = estimateTime % 60;
+                    document.getElementById('networkTimeDisplay').textContent = `≈ ${hours}小时${mins > 0 ? mins + '分钟' : ''}`;
+                }
+
+                // 缓存信息
+                feeCache[`${coin}_${network}`] = fee;
+                networkInfoCache[`${coin}_${network}`] = { fee, minAmount, estimateTime };
+
+                log(`${coin}/${network}: 手续费 ${fee}, 最小 ${minAmount}, 到账 ≈${estimateTime}分钟`, 'success');
+                playSound('success');
+
+            } catch (e) {
+                document.getElementById('networkFeeDisplay').textContent = '查询失败';
+                document.getElementById('networkFeeUSD').textContent = '';
+                document.getElementById('networkMinDisplay').textContent = '-';
+                document.getElementById('networkTimeDisplay').textContent = '-';
+                log(`查询失败: ${e.message}`, 'error');
+            }
+        }
+
+        // 缓存币种网络信息
+        let coinNetworkCache = {};
+
+        // 默认网络列表（无需 API Key）
+        const defaultNetworks = {
+            'USDT': [
+                { value: 'BSC', name: 'BEP20 (BSC)', fee: '~0.29', min: '10' },
+                { value: 'TRX', name: 'TRC20', fee: '~1', min: '10' },
+                { value: 'ETH', name: 'ERC20', fee: '~3.5', min: '10' },
+                { value: 'ARBITRUM', name: 'Arbitrum One', fee: '~0.1', min: '10' },
+                { value: 'OPTIMISM', name: 'Optimism', fee: '~0.1', min: '10' },
+                { value: 'SOL', name: 'Solana', fee: '~1', min: '10' },
+                { value: 'MATIC', name: 'Polygon', fee: '~0.8', min: '10' },
+                { value: 'TON', name: 'TON', fee: '~0.1', min: '0.1' }
+            ],
+            'USDC': [
+                { value: 'BSC', name: 'BEP20 (BSC)', fee: '~0.29', min: '10' },
+                { value: 'ETH', name: 'ERC20', fee: '~3.5', min: '10' },
+                { value: 'SOL', name: 'Solana', fee: '~1', min: '10' },
+                { value: 'ARBITRUM', name: 'Arbitrum One', fee: '~0.1', min: '10' },
+                { value: 'MATIC', name: 'Polygon', fee: '~0.8', min: '10' }
+            ],
+            'BNB': [
+                { value: 'BSC', name: 'BEP20 (BSC)', fee: '~0.00001', min: '0.0005' },
+                { value: 'OPBNB', name: 'opBNB', fee: '~0.00001', min: '0.001' }
+            ],
+            'ETH': [
+                { value: 'ETH', name: 'ERC20', fee: '~0.001', min: '0.01' },
+                { value: 'BSC', name: 'BEP20 (BSC)', fee: '~0.00005', min: '0.001' },
+                { value: 'ARBITRUM', name: 'Arbitrum One', fee: '~0.0001', min: '0.001' },
+                { value: 'OPTIMISM', name: 'Optimism', fee: '~0.0001', min: '0.001' }
+            ],
+            'BTC': [
+                { value: 'BTC', name: 'Bitcoin', fee: '~0.0001', min: '0.001' }
+            ],
+            'SOL': [
+                { value: 'SOL', name: 'Solana', fee: '~0.01', min: '0.02' }
+            ],
+            'XRP': [
+                { value: 'XRP', name: 'XRP', fee: '~0.25', min: '20' }
+            ],
+            'DOGE': [
+                { value: 'DOGE', name: 'Dogecoin', fee: '~5', min: '10' }
+            ],
+            'TRX': [
+                { value: 'TRX', name: 'TRC20', fee: '~1', min: '10' }
+            ],
+            '_default': [
+                { value: 'BSC', name: 'BEP20 (BSC)', fee: '?', min: '?' },
+                { value: 'ETH', name: 'ERC20', fee: '?', min: '?' },
+                { value: 'TRX', name: 'TRC20', fee: '?', min: '?' }
+            ]
+        };
+
+        // 动态加载币种支持的网络
+        async function loadNetworksForCoin(coin, forceApi = false) {
+            const networkSelect = document.getElementById('network');
+            const sessionToken = document.getElementById('sessionToken').value.trim().replace(/-/g, '');
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const secretKey = document.getElementById('secretKey').value.trim();
+
+            // 没有 API 密钥时使用默认网络列表
+            if (!forceApi && (!sessionToken || !apiKey || !secretKey)) {
+                const nets = defaultNetworks[coin] || defaultNetworks['_default'];
+                updateNetworkSelect(nets, coin, true);
+                log('提示: 配置 API Key 后可获取实时网络信息', 'info');
+                return;
+            }
+
+            // 使用缓存
+            if (coinNetworkCache[coin]) {
+                updateNetworkSelect(coinNetworkCache[coin], coin);
+                return;
+            }
+
+            networkSelect.innerHTML = '<option value="">加载中...</option>';
+            networkSelect.disabled = true;
+
+            try {
+                const encApiKey = await encryptAES(apiKey);
+                const encSecretKey = await encryptAES(secretKey);
+                const proxyUrl = document.getElementById('proxyUrl').value.trim();
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Session-Token': sessionToken },
+                    body: JSON.stringify({ action: 'balance', apiKey: encApiKey, secretKey: encSecretKey, proxyUrl, params: {} })
+                });
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                const coinInfo = data.find(c => c.coin === coin);
+                if (!coinInfo || !coinInfo.networkList) {
+                    networkSelect.innerHTML = '<option value="">未找到网络</option>';
+                    networkSelect.disabled = false;
+                    return;
+                }
+
+                // 过滤出支持提币的网络
+                const networks = coinInfo.networkList
+                    .filter(n => n.withdrawEnable)
+                    .map(n => ({
+                        value: n.network,
+                        name: n.name || n.network,
+                        fee: formatByPrecision(n.withdrawFee, n.withdrawIntegerMultiple),
+                        min: formatByPrecision(n.withdrawMin, n.withdrawIntegerMultiple),
+                        precision: getPrecisionFromMultiple(n.withdrawIntegerMultiple)
+                    }));
+
+                // 缓存精度信息
+                if (networks.length > 0) {
+                    coinPrecisionCache[coin] = networks[0].precision;
+                }
+
+                // 缓存
+                coinNetworkCache[coin] = networks;
+                updateNetworkSelect(networks, coin);
+
+            } catch (e) {
+                networkSelect.innerHTML = '<option value="BSC">BEP20</option><option value="ETH">ERC20</option><option value="TRX">TRC20</option>';
+                networkSelect.disabled = false;
+                log(`加载网络失败: ${e.message}`, 'warn');
+            }
+        }
+
+        // 更新网络下拉列表
+        function updateNetworkSelect(networks, coin, isDefault = false) {
+            const networkSelect = document.getElementById('network');
+            networkSelect.disabled = false;
+
+            if (networks.length === 0) {
+                networkSelect.innerHTML = '<option value="">暂不支持提币</option>';
+                return;
+            }
+
+            // 优先选择 BSC，否则选第一个
+            const preferBSC = networks.find(n => n.value === 'BSC');
+            const defaultNetwork = preferBSC || networks[0];
+
+            // 只有精确数据时才显示手续费
+            networkSelect.innerHTML = networks.map(n => {
+                const feeText = isDefault ? '' : ` (${n.fee} ${coin})`;
+                return `<option value="${n.value}" ${n.value === defaultNetwork.value ? 'selected' : ''}>${n.name}${feeText}</option>`;
+            }).join('');
+
+            // 自动显示手续费信息（只在有精确数据时显示）
+            if (defaultNetwork && !isDefault) {
+                document.getElementById('networkInfoBox').style.display = 'block';
+                document.getElementById('networkFeeDisplay').textContent = `${defaultNetwork.fee} ${coin}`;
+                document.getElementById('networkMinDisplay').textContent = `${defaultNetwork.min} ${coin}`;
+                document.getElementById('networkTimeDisplay').textContent = '≈ 1-5分钟';
+                feeCache[`${coin}_${defaultNetwork.value}`] = parseFloat(defaultNetwork.fee) || 0;
+
+                // 查询实时价格显示美元估值
+                getCoinPrice(coin).then(priceData => {
+                    if (priceData && priceData.price) {
+                        const fee = parseFloat(defaultNetwork.fee) || 0;
+                        const usdValue = fee * parseFloat(priceData.price);
+                        document.getElementById('networkFeeUSD').textContent = `(≈ $${usdValue.toFixed(8)})`;
+                    } else {
+                        document.getElementById('networkFeeUSD').textContent = '';
+                    }
+                }).catch(() => {
+                    document.getElementById('networkFeeUSD').textContent = '';
+                });
+            } else {
+                document.getElementById('networkInfoBox').style.display = 'none';
+            }
+        }
+
+        // 页面加载时显示网络信息框
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('networkInfoBox').style.display = 'block';
+        });
+
+        // 显示失败任务列表
+        function showFailedTasks() {
+            const failed = transfers.filter(t => t.status === 'error');
+            const box = document.getElementById('failedTasksBox');
+            const list = document.getElementById('failedTasksList');
+            const count = document.getElementById('failedCount');
+
+            if (failed.length === 0) {
+                box.style.display = 'none';
+                return;
+            }
+
+            box.style.display = 'block';
+            count.textContent = failed.length;
+
+            const coin = getSelectedCoin();
+            list.innerHTML = failed.map((t, i) => `
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <div style="flex: 1;">
+                        <code style="font-size: 12px; color: var(--text-secondary);">${t.address.slice(0, 12)}...${t.address.slice(-8)}</code>
+                        <span style="margin-left: 8px; color: var(--primary);">${t.amount} ${coin}</span>
+                    </div>
+                    <div style="color: var(--error); font-size: 12px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${t.error || '未知错误'}">
+                        ${t.error || '未知错误'}
+                    </div>
+                </div>
+            `).join('');
+
+            playSound('error');
+        }
+
+        // 重试失败的任务
+        async function retryFailed() {
+            const failed = transfers.filter(t => t.status === 'error');
+            if (failed.length === 0) {
+                log('没有失败任务', 'info');
+                return;
+            }
+
+            if (!confirm(`确认重试 ${failed.length} 笔失败任务？`)) return;
+
+            // 重置失败任务状态为 pending
+            failed.forEach(t => {
+                t.status = 'pending';
+                t.error = null;
+            });
+            updateUI();
+
+            // 隐藏失败列表
+            document.getElementById('failedTasksBox').style.display = 'none';
+
+            log(`准备重试 ${failed.length} 笔失败任务`, 'info');
+
+            // 触发批量提币
+            startBatchWithdraw();
+        }
+
+        // 复制失败地址
+        function copyFailedAddresses() {
+            const failed = transfers.filter(t => t.status === 'error');
+            if (failed.length === 0) {
+                log('没有失败任务', 'info');
+                return;
+            }
+
+            const coin = getSelectedCoin();
+            const text = failed.map(t => `${t.address},${t.amount}`).join('\n');
+
+            navigator.clipboard.writeText(text).then(() => {
+                log(`已复制 ${failed.length} 个失败地址到剪贴板`, 'success');
+                playSound('success');
+            }).catch(e => {
+                log('复制失败: ' + e.message, 'error');
+            });
+        }
+
+        // 音频提示 (使用 Web Audio API 生成简单音效)
+        function playSound(type) {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                if (type === 'success') {
+                    oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+                    oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime + 0.1);
+                } else if (type === 'error') {
+                    oscillator.frequency.setValueAtTime(300, audioCtx.currentTime);
+                    oscillator.frequency.setValueAtTime(200, audioCtx.currentTime + 0.1);
+                } else {
+                    oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+                }
+
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+
+                oscillator.start(audioCtx.currentTime);
+                oscillator.stop(audioCtx.currentTime + 0.2);
+            } catch (e) { /* 静默失败 */ }
+        }
+
+        // 代理检测
+        async function testProxy() {
+            const proxyUrl = document.getElementById('proxyUrl').value.trim();
+            const statusEl = document.getElementById('proxyStatus');
+            const btn = document.getElementById('testProxyBtn');
+
+            if (!proxyUrl) {
+                statusEl.innerHTML = '<span style="color: var(--warning);">请输入代理地址</span>';
+                return;
+            }
+
+            const sessionToken = getSessionToken();
+            if (!sessionToken) {
+                statusEl.innerHTML = '<span style="color: var(--danger);">请先输入 Session Token</span>';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '检测中...';
+            statusEl.innerHTML = '<span style="color: var(--text-secondary);">⏳</span>';
+
+            try {
+                const response = await fetch(API_URL.replace('/api', '/api/proxy-test'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Session-Token': sessionToken
+                    },
+                    body: JSON.stringify({ proxyUrl })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    statusEl.innerHTML = `<span style="color: var(--success);">✓ ${result.ip} (${result.country}) ${result.latency}ms</span>`;
+                } else {
+                    statusEl.innerHTML = `<span style="color: var(--danger);">✗ ${result.error}</span>`;
+                }
+            } catch (e) {
+                statusEl.innerHTML = `<span style="color: var(--danger);">✗ 请求失败</span>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔍 检测';
+            }
+        }
+
+        // Token 验证状态显示 + 自动同步加密密钥
+        function validateToken() {
+            const token = document.getElementById('sessionToken').value.trim().replace(/-/g, '');
+            const statusEl = document.getElementById('tokenStatus');
+            if (token.length === 0) {
+                statusEl.innerHTML = '';
+            } else if (token.length === 32) {
+                statusEl.innerHTML = '<span style="color: var(--success);">✓ 格式正确</span>';
+                // 自动同步加密密钥
+                const encKey = document.getElementById('encryptionKey').value;
+                if (!encKey) {
+                    syncEncryptionKey();
+                }
+            } else {
+                statusEl.innerHTML = `<span style="color: var(--warning);">(${token.length}/32)</span>`;
+            }
+        }
+
+        // 从服务器同步加密密钥
+        async function syncEncryptionKey() {
+            const sessionToken = document.getElementById('sessionToken').value.trim().replace(/-/g, '');
+            if (!sessionToken || sessionToken.length !== 32) {
+                log('请先输入正确的 Session Token', 'warn');
+                return;
+            }
+
+            const statusEl = document.getElementById('encKeyStatus');
+            statusEl.innerHTML = '<span style="color: var(--warning);">同步中...</span>';
+
+            try {
+                const res = await fetch(`${API_URL.replace('/api', '')}/api/key`, {
+                    method: 'GET',
+                    headers: { 'X-Session-Token': sessionToken }
+                });
+                const data = await res.json();
+
+                if (data.error) {
+                    statusEl.innerHTML = `<span style="color: var(--danger);">❌ ${data.error}</span>`;
+                    log(`同步失败: ${data.error}`, 'error');
+                    return;
+                }
+
+                if (data.encryptionKey) {
+                    document.getElementById('encryptionKey').value = data.encryptionKey;
+                    statusEl.innerHTML = '<span style="color: var(--success);">✓ 已同步</span>';
+                    log('加密密钥同步成功', 'success');
+                }
+            } catch (e) {
+                statusEl.innerHTML = '<span style="color: var(--danger);">❌ 同步失败</span>';
+                log(`同步失败: ${e.message}`, 'error');
+            }
+        }
+
+        // AES-256-CBC 加密函数
+        async function encryptAES(plainText) {
+            const encKeyHex = document.getElementById('encryptionKey').value.trim();
+            if (!encKeyHex || encKeyHex.length !== 64) {
+                throw new Error('请输入正确的 Encryption Key');
+            }
+
+            // 将 hex 字符串转换为 Uint8Array
+            const keyBytes = new Uint8Array(encKeyHex.match(/.{2}/g).map(b => parseInt(b, 16)));
+
+            // 生成随机 IV (16 bytes)
+            const iv = crypto.getRandomValues(new Uint8Array(16));
+
+            // 导入密钥
+            const cryptoKey = await crypto.subtle.importKey(
+                'raw', keyBytes, { name: 'AES-CBC' }, false, ['encrypt']
+            );
+
+            // 加密数据
+            const encoder = new TextEncoder();
+            const data = encoder.encode(plainText);
+            const encrypted = await crypto.subtle.encrypt(
+                { name: 'AES-CBC', iv }, cryptoKey, data
+            );
+
+            // 拼接 iv + encrypted 转为 hex
+            const ivHex = Array.from(iv).map(b => b.toString(16).padStart(2, '0')).join('');
+            const encHex = Array.from(new Uint8Array(encrypted)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+            return ivHex + encHex;
+        }
+
+        // 密码显示/隐藏切换
+        function togglePasswordVisibility() {
+            const pwdInput = document.getElementById('secretKey');
+            const btn = document.getElementById('togglePwdBtn');
+            if (pwdInput.type === 'password') {
+                pwdInput.type = 'text';
+                btn.textContent = '🙈';
+                btn.title = '隐藏';
+            } else {
+                pwdInput.type = 'password';
+                btn.textContent = '👁️';
+                btn.title = '显示';
+            }
+        }
+
+        // 导出结果为 CSV
+        function exportResults() {
+            if (transfers.length === 0) {
+                log('没有可导出的数据', 'warn');
+                return;
+            }
+            const coin = getSelectedCoin();
+            const headers = ['序号', '地址', '金额', '状态', '错误信息'];
+            const rows = transfers.map((t, i) => [
+                i + 1,
+                t.address,
+                t.amount,
+                t.status === 'success' ? '成功' : t.status === 'error' ? '失败' : '等待',
+                t.error || ''
+            ]);
+
+            const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `提币结果_${coin}_${new Date().toISOString().slice(0, 10)}.csv`;
+            link.click();
+            log('CSV 导出成功', 'success');
+            playSound('success');
+        }
+
+        // 页面加载完成后自动聚焦 Token 输入框
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('sessionToken').focus();
+            log('提示: 请从控制台复制 Session Token', 'info');
+        });
+
+        // 获取 Session Token
+        function getSessionToken() {
+            const token = document.getElementById('sessionToken').value.trim().replace(/-/g, '');
+            if (!token) {
+                log('请先输入 Session Token', 'error');
+                return null;
+            }
+            return token;
+        }
+
+        // 封装的 API 请求函数
+        async function apiRequest(action, params = {}) {
+            const sessionToken = getSessionToken();
+            if (!sessionToken) return null;
+
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const secretKey = document.getElementById('secretKey').value.trim();
+            const proxyUrl = document.getElementById('proxyUrl').value.trim();
+
+            // 加密 apiKey 和 secretKey
+            let encApiKey, encSecretKey;
+            try {
+                encApiKey = await encryptAES(apiKey);
+                encSecretKey = await encryptAES(secretKey);
+            } catch (e) {
+                log(e.message, 'error');
+                return null;
+            }
+
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Session-Token': sessionToken
+                },
+                body: JSON.stringify({ action, apiKey: encApiKey, secretKey: encSecretKey, proxyUrl, params })
+            });
+
+            return response;
+        }
 
         function log(message, type = 'info') {
             const logArea = document.getElementById('logArea');
@@ -819,11 +1905,18 @@
             const apiKey = document.getElementById('apiKey').value.trim();
             const secretKey = document.getElementById('secretKey').value.trim();
             if (!apiKey || !secretKey) return null;
+            const sessionToken = document.getElementById('sessionToken').value.trim().replace(/-/g, '');
+            if (!sessionToken) return null;
+            const encKey = document.getElementById('encryptionKey').value.trim();
+            if (!encKey || encKey.length !== 64) return null;
             try {
+                const encApiKey = await encryptAES(apiKey);
+                const encSecretKey = await encryptAES(secretKey);
+                const proxyUrl = document.getElementById('proxyUrl').value.trim();
                 const res = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'balance', apiKey, secretKey, params: {} })
+                    headers: { 'Content-Type': 'application/json', 'X-Session-Token': sessionToken },
+                    body: JSON.stringify({ action: 'balance', apiKey: encApiKey, secretKey: encSecretKey, proxyUrl, params: {} })
                 });
                 const data = await res.json();
                 if (data.error || !Array.isArray(data)) return null;
@@ -838,7 +1931,7 @@
         }
 
         async function updateFeeDisplay() {
-            const coin = document.getElementById('coin').value;
+            const coin = getSelectedCoin();
             const network = document.getElementById('network').value;
             const count = transfers.length;
             if (count === 0) { document.getElementById('feeBox').style.display = 'none'; return; }
@@ -858,16 +1951,23 @@
             const apiKey = document.getElementById('apiKey').value.trim();
             const secretKey = document.getElementById('secretKey').value.trim();
             if (!apiKey || !secretKey) { log('请先填写 API Key', 'warn'); return; }
+            const sessionToken = document.getElementById('sessionToken').value.trim().replace(/-/g, '');
+            if (!sessionToken) { log('请先输入 Session Token', 'error'); return; }
+            const encKey = document.getElementById('encryptionKey').value.trim();
+            if (!encKey || encKey.length !== 64) { log('请先输入正确的 Encryption Key', 'error'); return; }
             try {
                 document.getElementById('availableBalance').textContent = '查询中...';
+                const encApiKey = await encryptAES(apiKey);
+                const encSecretKey = await encryptAES(secretKey);
+                const proxyUrl = document.getElementById('proxyUrl').value.trim();
                 const res = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'account', apiKey, secretKey, params: {} })
+                    headers: { 'Content-Type': 'application/json', 'X-Session-Token': sessionToken },
+                    body: JSON.stringify({ action: 'account', apiKey: encApiKey, secretKey: encSecretKey, proxyUrl, params: {} })
                 });
                 const data = await res.json();
                 if (data.error) throw new Error(data.error);
-                const coin = document.getElementById('coin').value;
+                const coin = getSelectedCoin();
                 const balance = data.balances?.find(b => b.asset === coin);
                 const free = balance ? parseFloat(balance.free).toFixed(4) : '0';
                 document.getElementById('availableBalance').textContent = `${free} ${coin}`;
@@ -902,7 +2002,7 @@
                 }
             }
             if (transfers.length === 0) { log('未解析到有效记录', 'error'); return; }
-            const coin = document.getElementById('coin').value;
+            const coin = getSelectedCoin();
             const total = transfers.reduce((s, t) => s + t.amount, 0);
             document.getElementById('totalAmountBox').style.display = 'flex';
             document.getElementById('totalAmount').textContent = `${total.toFixed(4)} ${coin}`;
@@ -913,7 +2013,7 @@
 
         function updateUI() {
             const container = document.getElementById('transferItems');
-            const coin = document.getElementById('coin').value;
+            const coin = getSelectedCoin();
             const success = transfers.filter(t => t.status === 'success').length;
             const error = transfers.filter(t => t.status === 'error').length;
             const pending = transfers.filter(t => t.status === 'pending' || t.status === 'processing').length;
@@ -939,13 +2039,15 @@
             `).join('');
         }
 
-        async function withdraw(address, amount, coin, network, apiKey, secretKey) {
+        async function withdraw(address, amount, coin, network, encApiKey, encSecretKey) {
             const withdrawOrderId = document.getElementById('withdrawOrderId').value.trim();
+            const sessionToken = document.getElementById('sessionToken').value.trim().replace(/-/g, '');
+            const proxyUrl = document.getElementById('proxyUrl').value.trim();
             const res = await fetch(API_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-Session-Token': sessionToken },
                 body: JSON.stringify({
-                    action: 'withdraw', apiKey, secretKey,
+                    action: 'withdraw', apiKey: encApiKey, secretKey: encSecretKey, proxyUrl,
                     params: {
                         coin, network, address, amount,
                         withdrawOrderId: withdrawOrderId ? `${withdrawOrderId}_${Date.now()}` : undefined
@@ -968,16 +2070,36 @@
             }
             const apiKey = document.getElementById('apiKey').value.trim();
             const secretKey = document.getElementById('secretKey').value.trim();
-            const coin = document.getElementById('coin').value;
-            const network = document.getElementById('network').value;
-            const delay = parseInt(document.getElementById('delay').value) || 3;
+            const coin = getSelectedCoin();
+            const network = document.getElementById('network').value.toUpperCase().trim();
             const feeMode = document.querySelector('input[name="feeMode"]:checked').value;
             const feeModeText = feeMode === 'receiver' ? '接收方支付' : '发送方支付';
             if (!apiKey || !secretKey) { log('请填写 API Key', 'error'); return; }
+            const sessionToken = document.getElementById('sessionToken').value.trim().replace(/-/g, '');
+            if (!sessionToken) { log('请先输入 Session Token', 'error'); return; }
+
+            // 检查加密密钥
+            const encKey = document.getElementById('encryptionKey').value.trim();
+            if (!encKey || encKey.length !== 64) {
+                log('请检查加密密钥是否已同步 (应为64位)', 'error');
+                return;
+            }
+
             if (transfers.length === 0) { log('请先解析列表', 'error'); return; }
             const pending = transfers.filter(t => t.status === 'pending');
             if (pending.length === 0) { log('没有待处理任务', 'warn'); return; }
             if (!confirm(`确认提币 ${pending.length} 笔？\n手续费: ${feeModeText}`)) return;
+
+            // 预先加密 API 密钥
+            let encApiKey, encSecretKey;
+            try {
+                encApiKey = await encryptAES(apiKey);
+                encSecretKey = await encryptAES(secretKey);
+            } catch (e) {
+                log(`加密失败: ${e.message}`, 'error');
+                return;
+            }
+
             isRunning = true;
             document.getElementById('startBtn').textContent = '⏹️ 停止';
             document.getElementById('startBtn').classList.remove('btn-primary');
@@ -1006,40 +2128,87 @@
 
                 log(`[${i + 1}] 提币 ${actualAmount} ${coin} → ${t.address.slice(0, 10)}...${feeMode === 'sender' ? ` (含手续费 ${withdrawFee})` : ''}`, 'info');
                 try {
-                    const result = await withdraw(t.address, actualAmount, coin, network, apiKey, secretKey);
+                    const result = await withdraw(t.address, actualAmount, coin, network, encApiKey, encSecretKey);
                     t.status = 'success';
                     t.txId = result.id;
                     log(`[${i + 1}] ✅ 成功 (接收方将收到 ${t.amount} ${coin})`, 'success');
+                    playSound('success');
                 } catch (e) {
                     t.status = 'error';
                     t.error = e.message;
                     log(`[${i + 1}] ❌ ${e.message}`, 'error');
+                    playSound('error');
                 }
                 updateUI();
-                if (isRunning && i < transfers.length - 1) await new Promise(r => setTimeout(r, delay * 1000));
+                if (isRunning && i < transfers.length - 1) {
+                    const delayTime = getDelay();
+                    const isRandom = document.getElementById('randomDelayToggle').checked;
+                    if (isRandom) {
+                        log(`等待 ${delayTime} 秒 (随机)...`, 'info');
+                    }
+                    await new Promise(r => setTimeout(r, delayTime * 1000));
+                }
             }
             isRunning = false;
             document.getElementById('startBtn').textContent = '🚀 开始批量提币';
             document.getElementById('startBtn').classList.remove('btn-danger');
             document.getElementById('startBtn').classList.add('btn-primary');
             const s = transfers.filter(t => t.status === 'success').length;
-            log(`完成! 成功: ${s}/${transfers.length}`, s > 0 ? 'success' : 'warn');
+            const f = transfers.filter(t => t.status === 'error').length;
+            log(`完成! 成功: ${s}/${transfers.length}${f > 0 ? `, 失败: ${f}` : ''}`, s > 0 ? 'success' : 'warn');
+
+            // 显示失败任务列表
+            showFailedTasks();
         }
 
-        document.getElementById('coin').addEventListener('change', function () {
-            const coin = this.value;
-            const network = document.getElementById('network');
-            const networks = {
-                'USDT': [['TRX', 'TRC20'], ['ETH', 'ERC20'], ['BSC', 'BEP20'], ['ARBITRUM', 'Arbitrum One'], ['OPTIMISM', 'Optimism'], ['MATIC', 'Polygon'], ['SOL', 'Solana'], ['AVAXC', 'Avalanche C-Chain'], ['TON', 'TON']],
-                'USDC': [['ETH', 'ERC20'], ['BSC', 'BEP20'], ['SOL', 'Solana'], ['ARBITRUM', 'Arbitrum One'], ['OPTIMISM', 'Optimism'], ['MATIC', 'Polygon'], ['AVAXC', 'Avalanche C-Chain'], ['BASE', 'Base']],
-                'BTC': [['BTC', 'Bitcoin'], ['BTCLN', 'Lightning Network']],
-                'ETH': [['ETH', 'ERC20'], ['BSC', 'BEP20'], ['ARBITRUM', 'Arbitrum One'], ['OPTIMISM', 'Optimism'], ['BASE', 'Base'], ['ZKSYNC', 'zkSync Era']],
-                'BNB': [['BSC', 'BEP20'], ['ETH', 'ERC20'], ['OPBNB', 'opBNB']],
-                'SOL': [['SOL', 'Solana']],
-                'TRX': [['TRX', 'TRC20']]
-            };
-            const opts = networks[coin] || [['ETH', 'ERC20']];
-            network.innerHTML = opts.map(([v, n]) => `<option value="${v}">${n}</option>`).join('');
+        // 币种选择变化处理
+        function onCoinChange() {
+            const coinSelect = document.getElementById('coin');
+            const customCoinInput = document.getElementById('customCoin');
+            const selectedValue = coinSelect.value;
+
+            if (selectedValue === 'CUSTOM') {
+                customCoinInput.style.display = 'block';
+                customCoinInput.focus();
+            } else {
+                customCoinInput.style.display = 'none';
+                customCoinInput.value = '';
+                // 加载网络
+                clearTimeout(window.autoQueryTimer);
+                window.autoQueryTimer = setTimeout(() => {
+                    loadNetworksForCoin(selectedValue);
+                }, 300);
+            }
+        }
+
+        // 获取当前选中的币种（支持自定义）
+        function getSelectedCoin() {
+            const coinSelect = document.getElementById('coin');
+            const customCoinInput = document.getElementById('customCoin');
+            if (coinSelect.value === 'CUSTOM') {
+                return customCoinInput.value.toUpperCase().trim();
+            }
+            return coinSelect.value;
+        }
+
+        // 自定义币种输入事件
+        document.getElementById('customCoin').addEventListener('input', function () {
+            const coin = this.value.toUpperCase().trim();
+            this.value = coin;
+            clearTimeout(window.autoQueryTimer);
+            window.autoQueryTimer = setTimeout(() => {
+                if (coin) loadNetworksForCoin(coin);
+            }, 500);
+        });
+
+        // 网络变化时也自动查询
+        document.getElementById('network').addEventListener('change', function () {
+            clearTimeout(window.autoQueryTimer);
+            window.autoQueryTimer = setTimeout(() => {
+                if (document.getElementById('apiKey').value && document.getElementById('secretKey').value && document.getElementById('sessionToken').value) {
+                    refreshNetworkInfo();
+                }
+            }, 300);
         });
 
         log('请配置 API 并输入提币列表', 'info');
