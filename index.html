@@ -1140,7 +1140,9 @@
         // 🔒 传输层加密配置（从服务端动态获取）
         let TRANSPORT_KEY = null;
         let TRANSPORT_IV = null;
+        let HMAC_SECRET = null;
         let transportConfigLoaded = false;
+        let derivedKey = null; // 缓存派生密钥
 
         // 🔒 加载传输层密钥配置
         async function loadTransportConfig() {
@@ -1157,8 +1159,31 @@
                 if (config.key && config.iv) {
                     TRANSPORT_KEY = config.key;
                     TRANSPORT_IV = config.iv;
+                    HMAC_SECRET = config.hmacSecret || null;
+
+                    // 🔒 使用 PBKDF2 派生密钥（浏览器兼容）
+                    const keyMaterial = await crypto.subtle.importKey(
+                        'raw',
+                        new TextEncoder().encode(TRANSPORT_KEY),
+                        'PBKDF2',
+                        false,
+                        ['deriveBits', 'deriveKey']
+                    );
+                    derivedKey = await crypto.subtle.deriveKey(
+                        {
+                            name: 'PBKDF2',
+                            salt: new TextEncoder().encode(TRANSPORT_IV),
+                            iterations: 600000,
+                            hash: 'SHA-256'
+                        },
+                        keyMaterial,
+                        { name: 'AES-CBC', length: 256 },
+                        true,
+                        ['encrypt', 'decrypt']
+                    );
+
                     transportConfigLoaded = true;
-                    console.log('🔒 传输层密钥已加载');
+                    console.log('🔒 传输层密钥已加载（PBKDF2 + HMAC）');
                     return true;
                 }
             } catch (e) {
@@ -1167,64 +1192,163 @@
             return false;
         }
 
-        // 🔒 传输层加密（使用 CryptoJS 兼容格式）
+        // 🔒 生成 HMAC 签名
+        async function generateHMAC(data) {
+            if (!HMAC_SECRET) return null;
+            try {
+                const key = await crypto.subtle.importKey(
+                    'raw',
+                    new TextEncoder().encode(HMAC_SECRET),
+                    { name: 'HMAC', hash: 'SHA-256' },
+                    false,
+                    ['sign']
+                );
+                const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(data));
+                return Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('');
+            } catch (e) {
+                console.error('HMAC 生成失败:', e);
+                return null;
+            }
+        }
+
+        // 🔒 生成 nonce（防重放）
+        function generateNonce() {
+            return Array.from(crypto.getRandomValues(new Uint8Array(16)))
+                .map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // 🔒 传输层加密（带 HMAC 和 PBKDF2）
         async function encryptTransport(plainText) {
-            if (!transportConfigLoaded) {
+            if (!transportConfigLoaded || !derivedKey) {
                 console.error('传输配置未加载');
                 return null;
             }
             try {
-                // 使用 SHA256 哈希密钥
-                const keyBytes = new Uint8Array(32);
-                const keyHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(TRANSPORT_KEY));
-                keyBytes.set(new Uint8Array(keyHash));
-                
                 const ivBytes = new TextEncoder().encode(TRANSPORT_IV);
-                
-                const cryptoKey = await crypto.subtle.importKey(
-                    'raw', keyBytes, { name: 'AES-CBC' }, false, ['encrypt']
-                );
-                
                 const data = new TextEncoder().encode(plainText);
                 const encrypted = await crypto.subtle.encrypt(
-                    { name: 'AES-CBC', iv: ivBytes }, cryptoKey, data
+                    { name: 'AES-CBC', iv: ivBytes }, derivedKey, data
                 );
-                
+
                 // 转为 base64
-                return btoa(String.fromCharCode(...new Uint8Array(encrypted)));
+                const encryptedBase64 = btoa(String.fromCharCode(...new Uint8Array(encrypted)));
+
+                // 生成 HMAC
+                const hmac = await generateHMAC(encryptedBase64);
+
+                if (hmac) {
+                    return JSON.stringify({ data: encryptedBase64, hmac });
+                }
+                return encryptedBase64;
             } catch (e) {
                 console.error('传输层加密失败:', e);
                 return null;
             }
         }
 
-        // 🔒 传输层解密
-        async function decryptTransport(encryptedBase64) {
-            if (!transportConfigLoaded) {
+        // 🔒 传输层解密（使用 PBKDF2 派生密钥）
+        async function decryptTransport(encryptedData) {
+            if (!transportConfigLoaded || !derivedKey) {
                 console.error('传输配置未加载');
                 return null;
             }
             try {
-                const keyBytes = new Uint8Array(32);
-                const keyHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(TRANSPORT_KEY));
-                keyBytes.set(new Uint8Array(keyHash));
-                
+                let data = encryptedData;
+
+                // 处理带 HMAC 的新格式
+                if (typeof encryptedData === 'string') {
+                    try {
+                        const parsed = JSON.parse(encryptedData);
+                        if (parsed.data && parsed.hmac) {
+                            // 验证 HMAC
+                            const expectedHmac = await generateHMAC(parsed.data);
+                            if (expectedHmac !== parsed.hmac) {
+                                console.error('HMAC 验证失败');
+                                return null;
+                            }
+                            data = parsed.data;
+                        }
+                    } catch { /* 旧格式纯 base64 */ }
+                }
+
                 const ivBytes = new TextEncoder().encode(TRANSPORT_IV);
-                
-                const cryptoKey = await crypto.subtle.importKey(
-                    'raw', keyBytes, { name: 'AES-CBC' }, false, ['decrypt']
-                );
-                
-                const encrypted = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0));
+                const encrypted = Uint8Array.from(atob(data), c => c.charCodeAt(0));
                 const decrypted = await crypto.subtle.decrypt(
-                    { name: 'AES-CBC', iv: ivBytes }, cryptoKey, encrypted
+                    { name: 'AES-CBC', iv: ivBytes }, derivedKey, encrypted
                 );
-                
+
                 return new TextDecoder().decode(decrypted);
             } catch (e) {
                 console.error('传输层解密失败:', e);
                 return null;
             }
+        }
+
+        // 🔒 解析加密的 API 响应
+        async function parseEncryptedResponse(response) {
+            const responseData = await response.json();
+
+            // 检查是否是加密响应
+            if (responseData.encrypted && responseData.data) {
+                const decrypted = await decryptTransport(responseData.data);
+                if (decrypted) {
+                    return JSON.parse(decrypted);
+                }
+                throw new Error('响应解密失败');
+            }
+
+            // 未加密响应（兼容旧版或错误响应）
+            return responseData;
+        }
+
+        // 🔒 安全 API 调用（使用传输层加密）
+        async function secureApiCall(payload) {
+            const sessionToken = document.getElementById('sessionToken').value.trim().replace(/-/g, '');
+            if (!sessionToken || sessionToken.length !== 32) {
+                throw new Error('Session Token 无效');
+            }
+
+            if (!transportConfigLoaded) await loadTransportConfig();
+
+            let body;
+            if (transportConfigLoaded) {
+                const encrypted = await encryptTransport(JSON.stringify(payload));
+                body = encrypted ? JSON.stringify({ encrypted: true, data: encrypted }) : JSON.stringify(payload);
+            } else {
+                body = JSON.stringify(payload);
+            }
+
+            const res = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Session-Token': sessionToken },
+                body
+            });
+            return await parseEncryptedResponse(res);
+        }
+
+        // 🔒 安全代理测试调用
+        async function secureProxyTest(proxyUrl) {
+            const sessionToken = document.getElementById('sessionToken').value.trim().replace(/-/g, '');
+            if (!sessionToken || sessionToken.length !== 32) {
+                throw new Error('Session Token 无效');
+            }
+
+            if (!transportConfigLoaded) await loadTransportConfig();
+
+            let body;
+            if (transportConfigLoaded) {
+                const encrypted = await encryptTransport(JSON.stringify({ proxyUrl }));
+                body = encrypted ? JSON.stringify({ encrypted: true, data: encrypted }) : JSON.stringify({ proxyUrl });
+            } else {
+                body = JSON.stringify({ proxyUrl });
+            }
+
+            const res = await fetch('/api/proxy-test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Session-Token': sessionToken },
+                body
+            });
+            return await parseEncryptedResponse(res);
         }
 
         // 选项卡切换函数
@@ -1350,7 +1474,7 @@
                         params: { symbol: coin }
                     })
                 });
-                const data = await res.json();
+                const data = await parseEncryptedResponse(res);
 
                 // 缓存结果
                 priceCache[cacheKey] = { data, time: Date.now() };
@@ -1395,7 +1519,7 @@
                     headers: { 'Content-Type': 'application/json', 'X-Session-Token': sessionToken },
                     body: JSON.stringify({ action: 'balance', apiKey: encApiKey, secretKey: encSecretKey, proxyUrl, params: {} })
                 });
-                const data = await response.json();
+                const data = await parseEncryptedResponse(response);
 
                 if (data.error) {
                     throw new Error(data.error);
@@ -1547,12 +1671,27 @@
                 const encApiKey = await encryptAES(apiKey);
                 const encSecretKey = await encryptAES(secretKey);
                 const proxyUrl = document.getElementById('proxyUrl').value.trim();
+                const requestData = { action: 'balance', apiKey: encApiKey, secretKey: encSecretKey, proxyUrl, params: {} };
+
+                // 🔒 传输层加密
+                let body;
+                if (transportConfigLoaded) {
+                    const encryptedData = await encryptTransport(JSON.stringify(requestData));
+                    if (encryptedData) {
+                        body = JSON.stringify({ encrypted: true, data: encryptedData });
+                    } else {
+                        body = JSON.stringify(requestData);
+                    }
+                } else {
+                    body = JSON.stringify(requestData);
+                }
+
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-Session-Token': sessionToken },
-                    body: JSON.stringify({ action: 'balance', apiKey: encApiKey, secretKey: encSecretKey, proxyUrl, params: {} })
+                    body: body
                 });
-                const data = await response.json();
+                const data = await parseEncryptedResponse(response);
 
                 if (data.error) {
                     throw new Error(data.error);
@@ -1767,16 +1906,35 @@
             statusEl.innerHTML = '<span style="color: var(--text-secondary);">⏳</span>';
 
             try {
+                // 🔒 确保传输层配置已加载
+                if (!transportConfigLoaded) {
+                    await loadTransportConfig();
+                }
+
+                // 🔒 传输层加密
+                const requestData = { proxyUrl };
+                let body;
+                if (transportConfigLoaded) {
+                    const encryptedData = await encryptTransport(JSON.stringify(requestData));
+                    if (encryptedData) {
+                        body = JSON.stringify({ encrypted: true, data: encryptedData });
+                    } else {
+                        body = JSON.stringify(requestData);
+                    }
+                } else {
+                    body = JSON.stringify(requestData);
+                }
+
                 const response = await fetch(API_URL.replace('/api', '/api/proxy-test'), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-Session-Token': sessionToken
                     },
-                    body: JSON.stringify({ proxyUrl })
+                    body: body
                 });
 
-                const result = await response.json();
+                const result = await parseEncryptedResponse(response);
                 if (result.success) {
                     statusEl.innerHTML = `<span style="color: var(--success);">✓ ${result.ip} (${result.country}) ${result.latency}ms</span>`;
                 } else {
@@ -1824,7 +1982,7 @@
                     method: 'GET',
                     headers: { 'X-Session-Token': sessionToken }
                 });
-                const data = await res.json();
+                const data = await parseEncryptedResponse(res);
 
                 if (data.error) {
                     statusEl.innerHTML = `<span style="color: var(--danger);">❌ ${data.error}</span>`;
@@ -1961,7 +2119,7 @@
 
             // 构建请求数据
             const requestData = { action, apiKey: encApiKey, secretKey: encSecretKey, proxyUrl, params };
-            
+
             // 🔒 传输层加密
             let body;
             let useTransportEncryption = false;
@@ -2029,12 +2187,27 @@
                 const encApiKey = await encryptAES(apiKey);
                 const encSecretKey = await encryptAES(secretKey);
                 const proxyUrl = document.getElementById('proxyUrl').value.trim();
+                const requestData = { action: 'balance', apiKey: encApiKey, secretKey: encSecretKey, proxyUrl, params: {} };
+
+                // 🔒 传输层加密
+                let body;
+                if (transportConfigLoaded) {
+                    const encryptedData = await encryptTransport(JSON.stringify(requestData));
+                    if (encryptedData) {
+                        body = JSON.stringify({ encrypted: true, data: encryptedData });
+                    } else {
+                        body = JSON.stringify(requestData);
+                    }
+                } else {
+                    body = JSON.stringify(requestData);
+                }
+
                 const res = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-Session-Token': sessionToken },
-                    body: JSON.stringify({ action: 'balance', apiKey: encApiKey, secretKey: encSecretKey, proxyUrl, params: {} })
+                    body: body
                 });
-                const data = await res.json();
+                const data = await parseEncryptedResponse(res);
                 if (data.error || !Array.isArray(data)) return null;
                 const coinInfo = data.find(c => c.coin === coin);
                 if (!coinInfo || !coinInfo.networkList) return null;
@@ -2076,12 +2249,27 @@
                 const encApiKey = await encryptAES(apiKey);
                 const encSecretKey = await encryptAES(secretKey);
                 const proxyUrl = document.getElementById('proxyUrl').value.trim();
+                const requestData = { action: 'account', apiKey: encApiKey, secretKey: encSecretKey, proxyUrl, params: {} };
+
+                // 🔒 传输层加密
+                let body;
+                if (transportConfigLoaded) {
+                    const encryptedData = await encryptTransport(JSON.stringify(requestData));
+                    if (encryptedData) {
+                        body = JSON.stringify({ encrypted: true, data: encryptedData });
+                    } else {
+                        body = JSON.stringify(requestData);
+                    }
+                } else {
+                    body = JSON.stringify(requestData);
+                }
+
                 const res = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-Session-Token': sessionToken },
-                    body: JSON.stringify({ action: 'account', apiKey: encApiKey, secretKey: encSecretKey, proxyUrl, params: {} })
+                    body: body
                 });
-                const data = await res.json();
+                const data = await parseEncryptedResponse(res);
                 if (data.error) throw new Error(data.error);
                 const coin = getSelectedCoin();
                 const balance = data.balances?.find(b => b.asset === coin);
@@ -2159,18 +2347,34 @@
             const withdrawOrderId = document.getElementById('withdrawOrderId').value.trim();
             const sessionToken = document.getElementById('sessionToken').value.trim().replace(/-/g, '');
             const proxyUrl = document.getElementById('proxyUrl').value.trim();
+
+            const requestData = {
+                action: 'withdraw', apiKey: encApiKey, secretKey: encSecretKey, proxyUrl,
+                params: {
+                    coin, network, address, amount,
+                    withdrawOrderId: withdrawOrderId ? `${withdrawOrderId}_${Date.now()}` : undefined
+                }
+            };
+
+            // 🔒 传输层加密
+            let body;
+            if (transportConfigLoaded) {
+                const encryptedData = await encryptTransport(JSON.stringify(requestData));
+                if (encryptedData) {
+                    body = JSON.stringify({ encrypted: true, data: encryptedData });
+                } else {
+                    body = JSON.stringify(requestData);
+                }
+            } else {
+                body = JSON.stringify(requestData);
+            }
+
             const res = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-Session-Token': sessionToken },
-                body: JSON.stringify({
-                    action: 'withdraw', apiKey: encApiKey, secretKey: encSecretKey, proxyUrl,
-                    params: {
-                        coin, network, address, amount,
-                        withdrawOrderId: withdrawOrderId ? `${withdrawOrderId}_${Date.now()}` : undefined
-                    }
-                })
+                body: body
             });
-            const data = await res.json();
+            const data = await parseEncryptedResponse(res);
             if (data.error) throw new Error(data.error);
             return data;
         }
