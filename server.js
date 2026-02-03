@@ -24,6 +24,39 @@ const SESSION_TOKEN = crypto.randomBytes(16).toString('hex');
 // 生成随机 AES 加密密钥 (32 bytes = AES-256)
 const ENCRYPTION_KEY = crypto.randomBytes(32).toString('hex');
 
+// 🔒 传输层加密配置（每次启动随机生成）
+const TRANSPORT_KEY = crypto.randomBytes(32).toString('hex');
+const TRANSPORT_IV = crypto.randomBytes(16).toString('hex').slice(0, 16);
+
+// 🔒 传输层加密（加密 API 响应）
+function encryptTransport(plainText) {
+    try {
+        const key = crypto.createHash('sha256').update(TRANSPORT_KEY).digest();
+        const ivBuffer = Buffer.from(TRANSPORT_IV, 'utf8');
+        const cipher = crypto.createCipheriv('aes-256-cbc', key, ivBuffer);
+        cipher.setAutoPadding(true);
+        const encrypted = Buffer.concat([cipher.update(plainText, 'utf8'), cipher.final()]);
+        return encrypted.toString('base64');
+    } catch (e) {
+        return null;
+    }
+}
+
+// 🔒 传输层解密（解密 API 请求）
+function decryptTransport(encryptedBase64) {
+    try {
+        const key = crypto.createHash('sha256').update(TRANSPORT_KEY).digest();
+        const ivBuffer = Buffer.from(TRANSPORT_IV, 'utf8');
+        const encrypted = Buffer.from(encryptedBase64, 'base64');
+        const decipher = crypto.createDecipheriv('aes-256-cbc', key, ivBuffer);
+        decipher.setAutoPadding(true);
+        const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
+        return decrypted.toString('utf8');
+    } catch (e) {
+        return null;
+    }
+}
+
 // AES-256-CBC 解密函数
 function decryptAES(encryptedHex) {
     try {
@@ -444,12 +477,32 @@ async function getServerTime(proxyUrl = null) {
     return Date.now();
 }
 
-// 验证 Session Token
+// 🔒 生成请求 ID
+function generateRequestId() {
+    return `${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}`;
+}
+
+// 🔒 安全的 Session Token 验证（防止时序攻击）
 function validateSessionToken(req, res) {
     const token = req.headers['x-session-token'];
-    if (token !== SESSION_TOKEN) {
+    if (!token || token.length !== SESSION_TOKEN.length) {
         res.writeHead(401, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Session Token 无效或缺失' }));
+        return false;
+    }
+
+    // 使用时序安全比较防止时序攻击
+    try {
+        const tokenBuffer = Buffer.from(token, 'utf8');
+        const sessionBuffer = Buffer.from(SESSION_TOKEN, 'utf8');
+        if (!crypto.timingSafeEqual(tokenBuffer, sessionBuffer)) {
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Session Token 无效' }));
+            return false;
+        }
+    } catch (e) {
+        res.writeHead(401, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Session Token 验证失败' }));
         return false;
     }
     return true;
@@ -483,8 +536,11 @@ function setSecurityHeaders(res) {
 
 // API 请求处理
 async function handleApiRequest(req, res, body) {
+    const requestId = generateRequestId();
+
     setSecurityHeaders(res);
     res.setHeader('Content-Type', 'application/json');
+    res.setHeader('X-Request-ID', requestId);
     const origin = req.headers.origin || `https://${req.headers.host}`;
     res.setHeader('Access-Control-Allow-Origin', origin);
 
@@ -492,7 +548,19 @@ async function handleApiRequest(req, res, body) {
 
     let sensitiveData = null;
     try {
-        const data = JSON.parse(body);
+        let data = JSON.parse(body);
+
+        // 🔒 传输层解密
+        if (data.encrypted && data.data) {
+            const decrypted = decryptTransport(data.data);
+            if (!decrypted) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ error: '传输解密失败' }));
+                return;
+            }
+            data = JSON.parse(decrypted);
+        }
+
         sensitiveData = data; // 保存引用以便清理
         const { action, apiKey: encApiKey, secretKey: encSecretKey, proxyUrl, params } = data;
 
@@ -622,9 +690,9 @@ async function handleApiRequest(req, res, body) {
         }
 
     } catch (e) {
-        console.error('API 错误:', e);
+        console.error(`[${requestId}] API 错误:`, e);
         res.writeHead(500);
-        res.end(JSON.stringify({ error: e.message }));
+        res.end(JSON.stringify({ error: e.message, requestId }));
     } finally {
         // 清理敏感数据
         clearSensitiveData(sensitiveData);
@@ -752,6 +820,18 @@ function handleRequest(req, res) {
         if (!validateSessionToken(req, res)) return;
         res.writeHead(200);
         res.end(JSON.stringify({ encryptionKey: ENCRYPTION_KEY }));
+        return;
+    }
+
+    // 🔒 传输层密钥配置 API（前端获取动态生成的密钥）
+    if (pathname === '/api/transport-config' && req.method === 'GET') {
+        setSecurityHeaders(res);
+        res.setHeader('Content-Type', 'application/json');
+        const origin = req.headers.origin || `https://${req.headers.host}`;
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        if (!validateSessionToken(req, res)) return;
+        res.writeHead(200);
+        res.end(JSON.stringify({ key: TRANSPORT_KEY, iv: TRANSPORT_IV }));
         return;
     }
 
